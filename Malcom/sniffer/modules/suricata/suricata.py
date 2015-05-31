@@ -34,12 +34,14 @@ class Suricata(Module):
         self.name = "suricata"
         self.pull_content = 'suricata'
         super(Suricata, self).__init__()
-        interface, mode, conf_suricata, socket_unix = self.setup()
+        interface, mode, conf_suricata, socket_unix= self.setup()
         self.result = super(Suricata, self).load_results()
-        self.reload=False
+        self.reload = False
         self.actions = Actions(interface=interface, conf_sniffer=conf_suricata, mode=mode, socket_unix=socket_unix)
+
         if not self.result or self.result['timeout'] < datetime.datetime.utcnow():
             self.reload = True
+
         if self.reload:
                 debug_output('Suricata Start')
                 self.actions.start()
@@ -60,10 +62,7 @@ class Suricata(Module):
                 conf_suricata = self.config['suricata']['conf_suricata']
             if 'socket_unix' in self.config['suricata']:
                 socket_unix = self.config['suricata']['socket_unix']
-
         return interface, mode, conf_suricata, socket_unix
-
-
 
     def files_meta(self, dir_to_write_logs):
         files_dir = os.path.join(dir_to_write_logs, 'files')
@@ -72,6 +71,7 @@ class Suricata(Module):
             pass
 
     def bootstrap(self, args):
+        retry=0
         file_name = self.session.pcap_filename
         name_session = self.session.name
         if file_name and name_session:
@@ -82,6 +82,7 @@ class Suricata(Module):
                 while not os.path.isfile(os.path.join(dir_to_write_logs, 'eve.json')):
                     print os.path.isfile(os.path.join(dir_to_write_logs, 'eve.json'))
                     print os.path.join(dir_to_write_logs, 'eve.json')
+                    self.actions.check()
                     sleep(5)
                     pass
 
@@ -205,6 +206,11 @@ class Actions(object):
             self.suricate_brocker.send_pcap(pcap_file, directory)
         self.suricate_brocker.close()
 
+    def check(self):
+        ret=self.suricate_brocker.connect()
+        if ret:
+            response=self.suricate_brocker.send_command('pcap-current')
+            print response
 
 class SuricataBroker(object):
     def __init__(self, sck_path='', verbose=True):
