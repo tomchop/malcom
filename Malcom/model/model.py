@@ -521,6 +521,3 @@ class Model:
 
     def save_module_entry(self, entry):
         doc = self.modules.find_one_and_replace({'name': entry['name'], 'session_id': entry['session_id']}, entry)
-        print doc
-        if not doc:
-            self.modules.insert(entry)
