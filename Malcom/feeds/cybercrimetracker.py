@@ -6,7 +6,7 @@ import md5
 from bson.objectid import ObjectId
 from bson.json_util import dumps
 
-from Malcom.model.datatypes import Evil, Url
+from Malcom.model.datatypes import Url
 from Malcom.feeds.feed import Feed
 import Malcom.auxiliary.toolbox as toolbox
 

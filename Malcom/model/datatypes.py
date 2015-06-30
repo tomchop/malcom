@@ -14,9 +14,6 @@ except Exception, e:
 	geoip = False
 
 
-
-
-
 class Element(dict):
 
 	default_fields = [('value', "Value"), ('type', "Type"), ('tags', "Tags"), ('date_first_seen', 'First Seen'), ('date_last_seen', "Last Seen"), ('date_updated', 'Updated'), ('date_created', 'Created'), ('last_analysis', 'Analyzed') ]
@@ -98,33 +95,6 @@ class File(Element):
 		self['next_analysis'] = None
 		return []
 
-
-
-class Evil(Element):
-
-	display_fields = Element.default_fields + [('link', 'Link'), ('guid', 'GUID'), ('description', 'Description')]
-	default_refresh_period = None
-
-	def __init__(self, value='', type="evil", tags=[]):
-		super(Evil, self).__init__()
-		self['value'] = value
-		self['type'] = type
-		self['tags'] = tags + ['evil']
-		self['refresh_period'] = Evil.default_refresh_period
-
-	@staticmethod
-	def from_dict(d):
-		e = Evil()
-		for key in d:
-			e[key] = d[key]
-		return e
-
-	def analytics(self):
-		self['last_analysis'] = datetime.datetime.utcnow()
-
-		# analysis does not change with time
-		self['next_analysis'] = None
-		return []
 
 
 class As(Element):
@@ -374,5 +344,3 @@ DataTypes = {
 	'ip': Ip,
 	'hostname': Hostname,
 	'as': As,
-	'evil': Evil,
-}
