@@ -244,10 +244,10 @@ api.add_resource(Data, '/api/data/', endpoint="malcom_api.data")
 
 # DATA MANIPULATION =======================================================
 
-
 class DatasetAPI(Resource):
     decorators=[login_required]
-    def get(self, action):
+    
+    def get(self, action, value=None):
         if action == 'remove':
             try:
                 _id = ObjectId(request.args.get('_id'))
@@ -257,11 +257,14 @@ class DatasetAPI(Resource):
             result = g.Model.remove_by_id(_id)
             return result
 
-        if action == 'add':
-            # TODO
-            pass
+        if action == 'add':    
+            tags = request.args.get('tags')
+            print tags
+            return ""
+            # _id = g.Model.add_text(value)
+        
 
-api.add_resource(DatasetAPI, '/api/dataset/<string:action>/')
+api.add_resource(DatasetAPI, '/api/dataset/<string:action>/', '/api/dataset/<string:action>/<string:value>/')
 
 
 # SNIFFER API =============================================================

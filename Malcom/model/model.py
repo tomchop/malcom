@@ -16,7 +16,7 @@ from bson.json_util import dumps as bson_dumps
 from bson.json_util import loads as bson_loads
 
 from Malcom.auxiliary.toolbox import *
-from Malcom.model.datatypes import Hostname, Url, Ip, As, Evil, DataTypes
+from Malcom.model.datatypes import Hostname, Url, Ip, As, DataTypes
 from Malcom.model.user_management import UserManager
 
 
@@ -64,6 +64,11 @@ class Model:
 
         # locks
         self.db_lock = threading.Lock()
+
+    def add_functions(self, functions):
+        import types
+        for f in functions:
+            setattr(self, f.__name__, types.MethodType(f, self))
 
     def rebuild_indexes(self):
         # create indexes
