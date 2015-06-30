@@ -9,7 +9,7 @@ import urllib2
 
 import Malcom.auxiliary.toolbox as toolbox
 from Malcom.feeds.feed import Feed
-from Malcom.model.datatypes import Evil, Url
+from Malcom.model.datatypes import Url
 
 
 class MalcodeBinaries(Feed):
