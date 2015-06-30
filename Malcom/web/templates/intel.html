@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block main %}
+<div class='col-md-9'>
+	<div role="tabpanel">
+		<ul id='datasetTabs' class='nav nav-tabs' role="tablist">
+			<li role='presentation' class='active'><a href='#all' aria-controls="all" role="tab" data-toggle='tab'>All</a></li>
+		</ul>
+		<div id='datasetTabsContent' class='tab-content'>
+			<div role="tabpanel" class='tab-pane active' id='all'>
+				<table class='table table-condensed table-hover' id='dataset'>
+				<tr><th>Title</th><th>Type</th></tr>
+				{% for e in entities%}
+					<tr><td>{{e.title}}</td><td>{{e.type}}</td></tr>
+				{% endfor %}
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
