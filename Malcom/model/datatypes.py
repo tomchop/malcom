@@ -339,8 +339,29 @@ class Hostname(Element):
 
 		return new
 
+
+class Iban(Element):
+	"""docstring for IBAN"""
+
+	default_refresh_period = 0
+
+	def validate(string):
+		pass
+
+	def __init__(self, iban=""):
+		super(Iban, self).__init__()
+		self['value'] = iban
+		self['type'] = 'iban'
+		self['refresh_period'] = Iban.default_refresh_period
+
+	def analytics(self):
+		pass
+
+
 DataTypes = {
 	'url': Url,
 	'ip': Ip,
 	'hostname': Hostname,
 	'as': As,
+	'iban': Iban
+}
