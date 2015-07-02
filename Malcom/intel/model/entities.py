@@ -2,10 +2,12 @@ import datetime, os, sys
 from Malcom.auxiliary.toolbox import debug_output
 import Malcom.auxiliary.toolbox as toolbox
 
-types = []
+
 
 class BaseEntity(dict):
 	"""docstring for BaseEntity"""
+
+	display_fields = [('title', "Title"), ('type', "Type")]
 
 	def __init__(self):
 		pass
@@ -44,6 +46,13 @@ class Incident(BaseEntity):
 		self.status = None			# status
 		self.type = 'incident'
 
+	@staticmethod
+	def from_dict(d):
+		f = Incident()
+		for key in d:
+			f[key] = d[key]
+		return f
+
 
 class Indicator(BaseEntity):
 	"""docstring for Indicator"""
@@ -55,6 +64,13 @@ class Indicator(BaseEntity):
 		self.description = None
 		self.confidence = None	
 		self.type = "indicator"
+
+	@staticmethod
+	def from_dict(d):
+		f = Indicator()
+		for key in d:
+			f[key] = d[key]
+		return f
 
 # This is what we call "Elements" today		
 # class Observable(BaseEntity):
@@ -68,6 +84,13 @@ class TTP(BaseEntity):
 		self.title = title			# Examples: Phishing, Spear-Phishing, Spamvertizing, Malware, C2 behavior, Encryption, callback, 
 		self.description = None
 		self.type = 'ttp'
+
+	@staticmethod
+	def from_dict(d):
+		f = TTP()
+		for key in d:
+			f[key] = d[key]
+		return f
 		
 class Malware(BaseEntity):			
 	"""docstring for Malware"""
@@ -76,6 +99,13 @@ class Malware(BaseEntity):
 		self.name = None
 		self._type = None
 		self.type = 'malware'
+
+	@staticmethod
+	def from_dict(d):
+		f = Malware()
+		for key in d:
+			f[key] = d[key]
+		return f
 		
 class Campaign(BaseEntity):
 	"""docstring for Campaign"""
@@ -85,6 +115,13 @@ class Campaign(BaseEntity):
 		self.names
 		self.type = 'campaign'
 
+	@staticmethod
+	def from_dict(d):
+		f = Campaign()
+		for key in d:
+			f[key] = d[key]
+		return f
+
 class Actor(BaseEntity):
 	"""docstring for Actor"""
 	def __init__(self):
@@ -92,17 +129,29 @@ class Actor(BaseEntity):
 		self.description = None
 		self.type = 'actor'
 
+	@staticmethod
+	def from_dict(d):
+		f = Actor()
+		for key in d:
+			f[key] = d[key]
+		return f
+
+def get_entities(self, type=None):
+	if type:
+		entities = self._db.entities.find({'type': type})
+	else:
+		entities = self._db.entities.find()
+
+	return entities
+
+model_functions = [get_entities]
 
 
-
-
-
-
-
-
-
-
-
-
-
-
+DataTypes = {
+	'incident': Incident,
+	'indicator' : Indicator,
+	'ttp' : TTP,
+	'malware' : Malware,
+	'campaign' : Campaign,
+	'actor' : Actor,
+}

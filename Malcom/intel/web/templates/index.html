@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block custom_head %}
+<script type="text/javascript" src='{{ url_for('malcom_intel.static', filename='js/index.js')}}'></script>
+{% endblock %}
+{% block main %}
+
+<div class='col-md-9'>
+	<div role="tabpanel">
+		<ul id='datasetTabs' class='nav nav-tabs' role="tablist">
+			<li role='presentation' class='active'><a id='all-tab' href='#all' aria-controls="all" role="tab" data-toggle='tab'>All</a></li>
+			<li role='presentation'><a id='campaigns-tab' href='#campaigns' aria-controls="campaigns" role="tab" data-toggle='tab' data-url='{{ url_for('malcom_intel.entity_table', type='campaign') }}' data-container='campaigns'>Campaigns</a></li>
+			<li role='presentation'><a id='malware-tab' href='#malware' aria-controls="malware" role="tab" data-toggle='tab' data-url='{{ url_for('malcom_intel.entity_table', type='malware') }}' data-container='malware'>Malware</a></li>
+			<li role='presentation'><a id='incidents-tab' href='#incidents' aria-controls="incidents" role="tab" data-toggle='tab' data-url='{{ url_for('malcom_intel.entity_table', type='incident') }}' data-container='incidents'>Incidents</a></li>
+			<li role='presentation'><a id='ttps-tab' href='#ttps' aria-controls="ttps" role="tab" data-toggle='tab' data-url='{{ url_for('malcom_intel.entity_table', type='ttp') }}' data-container='ttps'>TTPs</a></li>
+		</ul>
+		<div id='datasetTabsContent' class='tab-content'>
+			<div role="tabpanel" class='tab-pane active' id='all'>
+				<table class='table table-condensed table-hover' id='entities'>
+				<tr><th>Title</th><th>Type</th></tr>
+				{% for e in entities%}
+					<tr><td>{{e.value}}</td><td>{{e.type}}</td></tr>
+				{% endfor %}
+				</table>
+			</div>
+			<div role="tabpanel" class='tab-pane' id='campaigns'>
+			Loading...
+			</div>
+			<div role="tabpanel" class='tab-pane' id='malware'>
+			Loading...
+			</div>
+			<div role="tabpanel" class='tab-pane' id='incidents'>
+			Loading...
+			</div>
+			<div role="tabpanel" class='tab-pane' id='ttps'>
+			Loading...
+			</div>
+
+		</div>
+	</div>
+</div>
+{% endblock %}

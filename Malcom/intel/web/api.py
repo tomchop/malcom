@@ -3,11 +3,11 @@ from flask.ext.login import login_required
 from flask import Blueprint, g
 
 from Malcom.web.webserver import app
-from Malcom.web.intel.model import model_functions
+from Malcom.intel.model.entities import model_functions
 
-malcom_intel_api = Blueprint('malcom_intel_api', __name__)
+intel_api = Blueprint('intel_api', __name__)
 
-api = Api(malcom_intel_api)
+api = Api(intel_api)
 
 class EntityList(Resource):
 	"""Returns a list of specified entities"""
@@ -16,4 +16,4 @@ class EntityList(Resource):
 		g.Model.add_functions(model_functions)
 		return list(g.Model.get_entities(type))
 
-api.add_resource(EntityList, '/list', '/list/<string:type>')
+api.add_resource(EntityList, '/list', '/list/<string:type>', endpoint='list')

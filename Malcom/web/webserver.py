@@ -114,10 +114,10 @@ def can_modify_sniffer_session(f):
 
 from Malcom.web.websockets import malcom_websockets
 from Malcom.web.api import malcom_api
-import Malcom.web.intel.intel as intel
+import Malcom.intel.web.views as intel
 app.register_blueprint(malcom_websockets, url_prefix='/websocket')
 app.register_blueprint(malcom_api, url_prefix='/api')
-app.register_blueprint(intel.malcom_intel, url_prefix=intel.PREFIX)
+app.register_blueprint(intel.malcom_intel, url_prefix=intel.PREFIX, static_folder='static')
 
 
 # Requests ======================================================
