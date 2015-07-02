@@ -3,6 +3,7 @@ from jinja2 import TemplateNotFound
 
 from Malcom.web.webserver import app
 from Malcom.intel.web.api import intel_api
+from Malcom.intel.model.entities import BaseEntity
 
 
 PREFIX = '/intel'
@@ -13,14 +14,15 @@ app.register_blueprint(intel_api, url_prefix='/intel/api')
 @malcom_intel.route('/')
 def index():
 	print_routing()
-	entities = g.Model.find({'type': {'$in': ['incident', 'indicator', 'ttp', 'malware', 'campaign', 'actor']}})
+	entities = BaseEntity.find()#({'type': {'$in': ['incident', 'indicator', 'ttp', 'malware', 'campaign', 'actor']}})
 	return render_template("index.html", entities=entities)
 
 @malcom_intel.route('/table/<type>')
 def entity_table(type):
 	# type = request.args.get('type')
-	entities = g.Model.find({'type': type})
-	if entities.count() > 0:
+	entities = list(BaseEntity.find({'type': type}))
+	# if entities.count() > 0:
+	if len(entities) > 0:
 		return render_template("entity_table.html", entities=entities)
 	else:
 		return "No entities of type {} to show".format(type)

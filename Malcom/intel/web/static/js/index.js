@@ -16,6 +16,11 @@ $(function() {
 	  ajax_action($(this), populate);
 	});
 
+	$('#indicators-tab').on('shown.bs.tab', function (e) {
+	  console.log('Show indicators')
+	  ajax_action($(this), populate);
+	});
+
 	$('#incidents-tab').on('shown.bs.tab', function (e) {
 	  console.log('Show incidents')
 	  ajax_action($(this), populate);

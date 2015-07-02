@@ -17,11 +17,11 @@ from bson.json_util import loads as bson_loads
 
 from Malcom.auxiliary.toolbox import *
 from Malcom.model.datatypes import Hostname, Url, Ip, As
-from Malcom.model.datatypes import DataTypes as ElementDataTypes
-from Malcom.intel.model.entities import DataTypes as EntityDataTypes
+from Malcom.model.datatypes import DataTypes
+# from Malcom.intel.model.entities import DataTypes as EntityDataTypes
 from Malcom.model.user_management import UserManager
 
-DataTypes = dict(EntityDataTypes, **ElementDataTypes)
+# DataTypes = dict(EntityDataTypes, **ElementDataTypes)
 
 class Transform(SONManipulator):
     def transform_incoming(self, son, collection):

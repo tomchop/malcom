@@ -1,14 +1,49 @@
-from Malcom.model.entities import *
-from Malcom.analytics.analytics import analytics
-from Malcom.model.intel.entities import Email, F
+from Malcom.analytics.analytics import Analytics
+from Malcom.intel.model.entities import *
 
 a = Analytics()
 
-a.model._db['intel_graph'].drop()
-a.model._db['intel_entities'].drop()
+a.data._db[BaseEntity.entity_graph].drop()
+a.data._db[BaseEntity.entity_collection].drop()
 
 incident = Incident("Spamvertized Dridex - wave 1970-01-01")
 incident.idref = 17880
+incident.save()
+
+incident = Incident.find_one({'idref': 17880})
+print incident.to_dict()
+print incident['idref']
+print incident
+
+m = Malware("Dridex")
+c = Malware("Cridex")
+m.save()
+c.save()
+incident.link(m)
+incident.link(c)
+
+print "Destinations"
+nn = incident.dst_link()
+for n in nn:
+	print n
+
+incident2 = Incident("Spamvertized Dridex - wave 2015-01-01")
+incident2.save()
+incident2.link(incident)
+
+print "Sources"
+nn = incident.src_link()
+for n in nn:
+	print n
+
+
+print "Neighbors"
+nn = incident.neighbors()
+for n in nn:
+	print n
+
+
+exit()
 
 
 # Indicators / observables
