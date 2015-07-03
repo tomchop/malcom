@@ -30,6 +30,9 @@ $(function() {
 	  console.log('Show ttps')
 	  ajax_action($(this), populate);
 	});
+
+	ajax_action($("#all-tab"), populate);
+
 });
 
 function ajax_action(elt, callback) {
