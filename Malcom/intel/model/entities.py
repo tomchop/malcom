@@ -1,22 +1,19 @@
-import datetime, os, sys
 from pymongo.son_manipulator import SONManipulator
 
-from Malcom.auxiliary.toolbox import debug_output
-import Malcom.auxiliary.toolbox as toolbox
 from Malcom.intel.model.database import db
 
 
 class BaseEntity(dict):
     """docstring for BaseEntity"""
 
-    display_fields = [('title', "Title"), ('type', "Type")]
+    display_fields = [('title', "Title"), ('_type', "Type")]
     entity_collection = 'entities'
     entity_graph = 'entity_graph'
 
     def to_dict(self):
         return {k: self[k] for k in self}
 
-    @staticmethod    
+    @staticmethod
     def from_dict(d, entity_type):
         f = entity_type()
         for key in d:
@@ -53,44 +50,74 @@ class BaseEntity(dict):
         link = {'src': self._id, 'dst': entity._id, 'attribs': attribs}
         db[BaseEntity.entity_graph].save(link)
 
-    def dst_link(self):
+    def outgoing_links(self):
         if not self._id:
             raise ValueError("This {} has no _id set".format(self.__class__.__name__))
-        
-        dst_ids = [l['dst'] for l in db['graph'].find({'src': self._id})]
+
+        dst_ids = [l['dst'] for l in db[BaseEntity.entity_graph].find({'src': self._id})]
         return db[BaseEntity.entity_collection].find({'_id': {'$in': dst_ids}})
 
-    def src_link(self):
+    def incoming_links(self):
         if not self._id:
             raise ValueError("This {} has no _id set".format(self.__class__.__name__))
-        
-        src_ids = [l['src'] for l in db['graph'].find({'dst': self._id})]
+
+        src_ids = [l['src'] for l in db[BaseEntity.entity_graph].find({'dst': self._id})]
         return db[BaseEntity.entity_collection].find({'_id': {'$in': src_ids}})
 
-    def neighbors(self):
+    def all_links(self):
         if not self._id:
             raise ValueError("This {} has no _id set".format(self.__class__.__name__))
 
-        dst_ids = [l['dst'] for l in db['graph'].find({'src': self._id})]
-        src_ids = [l['src'] for l in db['graph'].find({'dst': self._id})]
+        dst_ids = [l['dst'] for l in db[BaseEntity.entity_graph].find({'src': self._id})]
+        src_ids = [l['src'] for l in db[BaseEntity.entity_graph].find({'dst': self._id})]
         ids = list(set(dst_ids + src_ids))
 
         return db[BaseEntity.entity_collection].find({'_id': {'$in': ids}})
 
+    def stix_related_elements(self):
+        links = list(self.all_links())
+        print links
+        rels = {}
+        for _type, label in self.stix_relationships:
+            rels[(_type, label)] = [e for e in links if e['_type'] == _type]
+
+        return rels
 
 
 class Incident(BaseEntity):
     """docstring for Incident"""
+    display_fields = BaseEntity.display_fields + [("idref", "ID ref"),
+                                                  ("timestamp", "Timestamp"),
+                                                  ("description", "Description"),
+                                                  ("categories", "Categories"),
+                                                  ("reporter", "Reporter"),
+                                                  ("victim", "Victim"),
+                                                  ("status", "Status")
+                                                  ]
+
+    stix_relationships = [('ttp', "Leveraged TTPs"),
+                          ('indicator', "Related Indicators"),
+                          ('incident', "Related Incidents"),
+                          ('observable', "Related Observables"),
+                          ('actor', "Related Threat Actor"),
+                          ('campaign', "Related campaign"),
+                          ('malware', "Leveraged Malware")
+                          ]
+
     def __init__(self, title=None):
         self.idref = None           # external reference ID
         self.timestamp = None
         self.title = title
-        self.description = None     
+        self.description = None
         self.categories = None      # categories
         self.reporter = None        # source reporting the incident
         self.victim = None          # victims
         self.status = None          # status
         self._type = 'incident'
+
+
+
+
 
 
 class Indicator(BaseEntity):
@@ -101,24 +128,25 @@ class Indicator(BaseEntity):
         self.description = None
         self.type = None           # Context in which the associated observable is observed --> http://stixproject.github.io/data-model/1.2/stixVocabs/IndicatorTypeVocab-1.1/
         self.description = None
-        self.confidence = None  
+        self.confidence = None
         self._type = "indicator"
 
-# This is what we call "Elements" today     
+# This is what we call "Elements" today
 # class Observable(BaseEntity):
 #   """Placeholder for CyBOX Observable"""
 #   def __init__(self):
 #       pass
 
+
 class TTP(BaseEntity):
     """Placeholder for TTP"""
     def __init__(self, title=None):
-        self.title = title          # Examples: Phishing, Spear-Phishing, Spamvertizing, Malware, C2 behavior, Encryption, callback, 
+        self.title = title          # Examples: Phishing, Spear-Phishing, Spamvertizing, Malware, C2 behavior, Encryption, callback,
         self.description = None
         self._type = 'ttp'
 
-        
-class Malware(BaseEntity):          
+
+class Malware(BaseEntity):
     """docstring for Malware"""
     # To be linked with TTPs
     def __init__(self, title=None):
@@ -127,7 +155,7 @@ class Malware(BaseEntity):
         self.type = None
         self._type = 'malware'
 
-        
+
 class Campaign(BaseEntity):
     """docstring for Campaign"""
     def __init__(self):
@@ -146,7 +174,7 @@ class Actor(BaseEntity):
 
 
 class EntityTransform(SONManipulator):
-    
+
     DataTypes = {
         'incident': Incident,
         'indicator': Indicator,

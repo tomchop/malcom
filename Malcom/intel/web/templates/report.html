@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block custom_head %}
+<script type="text/javascript" src='{{ url_for('malcom_intel.static', filename='js/index.js')}}'></script>
+{% endblock %}
+{% block main %}
+
+
+<div class='col-md-9'>
+<h3>{{entity.title}} <small>{{entity._type}} <a href='#' id='edit'>[edit]</a> <a href='#'>[+ add association]</a></small></h3>
+<table id='main-table' class='table table-condensed'>
+	{% for field, display in entity.display_fields %}
+	<tr><th>{{display}}</th><td>{{entity[field] or "N/A"}}</td></tr>
+	{% endfor %}
+</table>
+
+{% for _type, label in rels %}
+	{% set list = rels[(_type, label)] %}
+	{% if list|length > 0%}
+	<h4>{{label}}</h4>
+	<table class='table table-condensed'>
+		<tr>{% for field, display in list[0].display_fields %}<th>{{display}}</th>{% endfor %}</tr>
+		{% for entity in list %}
+		<tr>{% for field, display in entity.display_fields %}<td>{{entity[field]}}</td>{% endfor %}</tr>
+		{%endfor%}
+	</table>
+	{%endif%}
+{% endfor%}
+
+</div>
+{% endblock %}

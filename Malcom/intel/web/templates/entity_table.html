@@ -1,6 +1,6 @@
 <table class='table table-condensed table-hover' id='entities'>
 <tr><th>Title</th><th>Type</th></tr>
 {% for e in entities%}
-	<tr><td>{{e.title}}</td><td>{{e.type}}</td></tr>
+	<tr><td><a href="{{url_for('malcom_intel.report', _id=e._id)}}">{{e.title}}</a></td><td>{{e._type}}</td></tr>
 {% endfor %}
 </table>
