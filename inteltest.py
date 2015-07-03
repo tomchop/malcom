@@ -12,18 +12,20 @@ incident.save()
 
 incident = Incident.find_one({'idref': 17880})
 print incident.to_dict()
-print incident['idref']
+print incident['idref'], incident._id
 print incident
 
 m = Malware("Dridex")
 c = Malware("Cridex")
 m.save()
 c.save()
+print m._id
+print c._id
 incident.link(m)
 incident.link(c)
 
-print "Destinations"
-nn = incident.dst_link()
+print "\nDestinations"
+nn = incident.outgoing_links()
 for n in nn:
 	print n
 
@@ -31,14 +33,14 @@ incident2 = Incident("Spamvertized Dridex - wave 2015-01-01")
 incident2.save()
 incident2.link(incident)
 
-print "Sources"
-nn = incident.src_link()
+print "\nSources"
+nn = incident.incoming_links()
 for n in nn:
 	print n
 
 
-print "Neighbors"
-nn = incident.neighbors()
+print "\nNeighbors"
+nn = incident.all_links()
 for n in nn:
 	print n
 
@@ -47,7 +49,7 @@ exit()
 
 
 # Indicators / observables
-email = Email("Email containing malicious Dridex Macro", value='<email_file>')  # free 
+email = Email("Email containing malicious Dridex Macro", value='<email_file>')  # free
 dropper_doc = File("Dridex Word payload", value='<word_file>')					# free
 drop_url = URL("Intermediary script URL", value='hxxp', type=['C2', 'dropper'])	# free
 payload_url = URL("Dridex dropper URL", value='hxxp', type=['C2', 'dropper'])	# free
@@ -98,5 +100,5 @@ campaign.assocaite([email, dropper_doc, drop_url, payload_url, dropper_exe])
 # 1- add ttps / observables / campaign / malware to incident
 # 2- associate observables to TTPs
 # 3- associate TTP to malware, campaign, or both
-# 4- 
-# 
+# 4-
+#
