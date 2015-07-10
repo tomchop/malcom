@@ -20,8 +20,7 @@ def index():
 
 @malcom_intel.route('/report/<_id>')
 def report(_id):
-    oid = ObjectId(_id)
-    e = BaseEntity.find_one({'_id': oid})
+    e = BaseEntity.find_one({'_id': ObjectId(_id)})
     rels = e.stix_related_elements()
     return render_template("report.html", entity=e, rels=rels)
 
@@ -43,8 +42,7 @@ def entity_table():
 
 @malcom_intel.route("/debug")
 def debug():
-    rtng = get_routing()
-    return rtng
+    return get_routing()
 
 def get_routing():
     rtng = ""

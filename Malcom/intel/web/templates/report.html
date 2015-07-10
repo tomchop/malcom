@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 
 {% block custom_head %}
-<script type="text/javascript" src='{{ url_for('malcom_intel.static', filename='js/index.js')}}'></script>
+<script type="text/javascript" src='{{ url_for('malcom_intel.static', filename='js/report.js')}}'></script>
+<link rel="stylesheet" type="text/css" href="{{ url_for('malcom_intel.static', filename='css/report.css')}}">
 {% endblock %}
+
 {% block main %}
-
-
-<div class='col-md-9'>
-<h3>{{entity.title}} <small>{{entity._type}} <a href='#' id='edit'>[edit]</a> <a href='#'>[+ add association]</a></small></h3>
-<table id='main-table' class='table table-condensed'>
-	{% for field, display in entity.display_fields %}
-	<tr><th>{{display}}</th><td>{{entity[field] or "N/A"}}</td></tr>
+<div class='col-md-8'>
+<h3>{{entity.title}} <small>{{entity._type}} <a href='#' id='edit'>[edit]</a></small></h3>
+<table id='main-table' class='table table-condensed' data-url="{{ url_for('intel_api.update', _id=entity._id) }}">
+	{% for field, display, format in entity.display_fields %}
+	<tr><th>{{display}}</th><td data-field="{{field}}">{{entity[field] or "N/A"}}</td></tr>
 	{% endfor %}
 </table>
 
@@ -19,13 +19,32 @@
 	{% if list|length > 0%}
 	<h4>{{label}}</h4>
 	<table class='table table-condensed'>
-		<tr>{% for field, display in list[0].display_fields %}<th>{{display}}</th>{% endfor %}</tr>
+		<tr>{% for field, display, format in list[0].display_fields %}<th>{{display}}</th>{% endfor %}</tr>
 		{% for entity in list %}
-		<tr>{% for field, display in entity.display_fields %}<td>{{entity[field]}}</td>{% endfor %}</tr>
+		<tr>{% for field, display, format in entity.display_fields %}<td>{% if field == "title" %}<a href='{{ url_for("malcom_intel.report", _id=entity._id)}}'>{{entity[field]}}</a>{%else%}{{entity[field]}}{%endif%}</td>{% endfor %}</tr>
 		{%endfor%}
 	</table>
 	{%endif%}
 {% endfor%}
-
 </div>
 {% endblock %}
+
+{% block sidebar %}
+<div class='col-md-4'>
+<h3>Associate</h3>
+	<div class='input-group'>
+		<input id="query" class="form-control input-sm" data-url="{{ url_for('malcom_api.query') }}" placeholder='Enter search term'>
+		<span class="input-group-btn">
+			<button id='search-btn' class='btn btn-primary btn-sm' data-url="{{ url_for('intel_api.search') }}" type='button'>Search</button>
+			<button id='associate-btn' class='btn btn-primary btn-sm' data-url="{{ url_for('intel_api.associate', src=entity._id) }}" type='button'>Go!</button>
+		</span>
+	</div>
+	<div id='search'>
+		<form id='associate'>
+			<table>
+			<!-- <tr><th>Title</th><td>Type</td></tr> -->
+			</table>
+		</form>
+	</div>
+</div>
+{%endblock%}

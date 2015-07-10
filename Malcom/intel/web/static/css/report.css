@@ -1,0 +1,10 @@
+#main-table th {
+	width:200px;
+}
+
+#main-table input {
+	border: 1px solid #ddd;
+	width: 100%;
+	margin: -2px;
+	padding: 1px;
+}

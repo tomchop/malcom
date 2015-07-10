@@ -6,7 +6,7 @@ from Malcom.intel.model.database import db
 class BaseEntity(dict):
     """docstring for BaseEntity"""
 
-    display_fields = [('title', "Title"), ('_type', "Type")]
+    display_fields = [('title', "Title", "str"), ('_type', "Type", "bound:entity_types")]
     entity_collection = 'entities'
     entity_graph = 'entity_graph'
 
@@ -86,22 +86,22 @@ class BaseEntity(dict):
 
 class Incident(BaseEntity):
     """docstring for Incident"""
-    display_fields = BaseEntity.display_fields + [("idref", "ID ref"),
-                                                  ("timestamp", "Timestamp"),
-                                                  ("description", "Description"),
-                                                  ("categories", "Categories"),
-                                                  ("reporter", "Reporter"),
-                                                  ("victim", "Victim"),
-                                                  ("status", "Status")
+    display_fields = BaseEntity.display_fields + [("idref", "ID ref", "int"),
+                                                  ("timestamp", "Timestamp", "datetime"),
+                                                  ("description", "Description", "str"),
+                                                  ("categories", "Categories", "bound:incident_categories"),
+                                                  ("reporter", "Reporter", "bound:reporter"),
+                                                  ("victim", "Victim", "bound:victim"),
+                                                  ("status", "Status", "bound:status")
                                                   ]
 
     stix_relationships = [('ttp', "Leveraged TTPs"),
                           ('indicator', "Related Indicators"),
-                          ('incident', "Related Incidents"),
                           ('observable', "Related Observables"),
                           ('actor', "Related Threat Actor"),
                           ('campaign', "Related campaign"),
-                          ('malware', "Leveraged Malware")
+                          ('malware', "Leveraged Malware"),
+                          ('incident', "Related Incidents"),
                           ]
 
     def __init__(self, title=None):
@@ -117,19 +117,31 @@ class Incident(BaseEntity):
 
 
 
-
-
-
 class Indicator(BaseEntity):
     """docstring for Indicator"""
     # Indicator as in IOC. Indicators gather a group of technical observables
+
+    display_fields = BaseEntity.display_fields + [("description", "Description", "datetime"),
+                                                  ("type", "Indicator Type", "bound:indicator_types"),
+                                                  ("confidence", "Reporter", "bound:reporter"),
+                                                  ]
+
+    stix_relationships = [('ttp', "Indicated TTPs"),
+                          ('incident', "Used in Incidents"),
+                          ('observable', "Related Observables"),
+                          ('campaign', "Related campaign"),
+                          ('malware', "Leveraged Malware"),
+                          ('indicator', "Related Indicators"),
+                          ]
+
     def __init__(self, title=None):
         self.title = title
         self.description = None
         self.type = None           # Context in which the associated observable is observed --> http://stixproject.github.io/data-model/1.2/stixVocabs/IndicatorTypeVocab-1.1/
-        self.description = None
         self.confidence = None
         self._type = "indicator"
+
+
 
 # This is what we call "Elements" today
 # class Observable(BaseEntity):
@@ -140,6 +152,21 @@ class Indicator(BaseEntity):
 
 class TTP(BaseEntity):
     """Placeholder for TTP"""
+
+    display_fields = BaseEntity.display_fields + [("description", "Description", "datetime"),
+                                                  ("type", "TTP Type", "bound:ttp_types"),
+                                                  ]
+
+    stix_relationships = [
+                          ('incident', "Related Incidents"),
+                          ('indicator', "Related Indicators"),
+                          ('observable', "Related Observables"),
+                          ('campaign', "Related Campaign"),
+                          ('malware', "Characterizing Malware"),
+                          ('actor', "Characterizing Threat Actors"),
+                          ('ttp', "Related TTPs"),
+                          ]
+
     def __init__(self, title=None):
         self.title = title          # Examples: Phishing, Spear-Phishing, Spamvertizing, Malware, C2 behavior, Encryption, callback,
         self.description = None
@@ -149,6 +176,21 @@ class TTP(BaseEntity):
 class Malware(BaseEntity):
     """docstring for Malware"""
     # To be linked with TTPs
+
+    display_fields = BaseEntity.display_fields + [("family", "Family", "str"),
+                                                  ("type", "Malware type", "bound:malware_types"),
+                                                  ]
+
+    stix_relationships = [('ttp', "Known TTPs"),
+                          ('incident', "Seen in incidents"),
+                          ('indicator', "Related Indicators"),
+                          ('observable', "Related Observables"),
+                          ('campaign', "Related Campaigns"),
+                          ('actor', "Used by Actors"),
+                          ('malware', "Related Malware")
+                          ]
+
+
     def __init__(self, title=None):
         self.title = title
         self.family = title
@@ -158,18 +200,46 @@ class Malware(BaseEntity):
 
 class Campaign(BaseEntity):
     """docstring for Campaign"""
+
+    display_fields = BaseEntity.display_fields + [("description", "Description", "str"),
+                                                  ("timestamp", "Date", "datetime"),
+                                                  ]
+
+    stix_relationships = [('ttp', "Related TTPs"),
+                          ('incident', "Related Incidents"),
+                          ('indicator', "Related Indicators"),
+                          ('actor', "Attribution"),
+                          ('malware', "Related Malware"),
+                          ('campaign', "Related Campaigns"),
+                          ]
+
     def __init__(self):
         self.title
         self.description
-        self.names
+        self.timestamp
         self._type = 'campaign'
 
 
 class Actor(BaseEntity):
     """docstring for Actor"""
+
+    display_fields = BaseEntity.display_fields + [("description", "Description", "str"),
+                                                  ("aliases", "Aliases", "array:str")
+                                                  ]
+
+    stix_relationships = [('ttp', "Observed TTPs"),
+                          ('incident', "Related Incidents"),
+                          ('indicator', "Related Indicators"),
+                          ('campaign', "Related Campaigns"),
+                          ('malware', "Used Malware"),
+                          ('actor', "Associated actors"),
+                          ]
+
+
     def __init__(self):
         self.name = None
         self.description = None
+        self.aliases = None
         self._type = 'actor'
 
 
