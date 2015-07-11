@@ -22,7 +22,7 @@ $(function() {
 	});
 
 	$(".unlink").click(function(){
-		ajax_action($(this), function(){}, {});
+		ajax_action($(this), function(elt){elt[0].parentElement.parentElement.remove();}, {});
 	})
 
 	console.log("report.js loaded");
@@ -37,7 +37,6 @@ function ajax_action(elt, callback, params) {
 		callback(elt, data);
 	});
 }
-
 
 function search_entities(elt, data) {
 	tbl = $("<table id='search'></table>").addClass('table table-condensed');

@@ -8,3 +8,7 @@
 	margin: -2px;
 	padding: 1px;
 }
+
+.unlink {
+	cursor: pointer;
+}
