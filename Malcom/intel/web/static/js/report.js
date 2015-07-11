@@ -1,65 +1,51 @@
 $(function() {
+
 	$("#edit").click(function() {
 		console.log("clicked!");
 		edit_table();
 	});
 
 	$("#search-btn").click(function(){
-		search_entities($('#query').val(), $(this).data('url'))
+		ajax_action($(this), search_entities, {query: $('#query').val()})
 	});
 
 	$("#associate-btn").click(function(){
-		do_associations($(this).data('url'))
+		inputs = $("#associate").serializeArray();
+		ids = []
+
+		for (var i in inputs) {
+			console.log(inputs[i]);
+			ids.push(inputs[i].name);
+		}
+
+		ajax_action($(this), function(){}, $.param({ids: ids}, true));
 	});
 
 	$(".unlink").click(function(){
-		unlink($(this).data('url'));
+		ajax_action($(this), function(){}, {});
 	})
 
 	console.log("report.js loaded");
 });
 
-function unlink(url) {
-	console.log('unlinking');
+function ajax_action(elt, callback, params) {
 	$.ajax({
-		url: url,
-		method: "DELETE",
+		url: elt.data('url'),
+		data: params,
+		method: elt.data('ajax-method'),
 	}).success(function(data) {
-		console.log('elements succesfully unlinked')
+		callback(elt, data);
 	});
-
 }
 
-function do_associations(url) {
-	console.log('associating')
-	inputs = $("#associate").serializeArray()
-	ids = []
-	for (var i in inputs) {
-		console.log(inputs[i])
-		ids.push(inputs[i].name)
+
+function search_entities(elt, data) {
+	tbl = $("<table id='search'></table>").addClass('table table-condensed');
+	for (var i in data){
+		e = data[i];
+		tbl.append("<tr><th>"+e['title']+"</th><td>"+e['_type']+"</td><td><input type='checkbox' name='"+e['_id']['$oid']+"' /></td></tr>");
 	}
-	console.log(ids)
-	$.ajax({
-		url: url,
-		data: $.param({ids: ids}, true),
-		method: "POST",
-	}).success(function(data) {
-		console.log('elements succesfully associated')
-	});
-}
-
-function search_entities(query, url) {
-	$.ajax({
-		url: url,
-		data: {"query": query},
-	}).success(function(data) {
-		tbl = $("<table id='search'></table>").addClass('table table-condensed');
-		for (var i in data){
-			e = data[i];
-			tbl.append("<tr><th>"+e['title']+"</th><td>"+e['_type']+"</td><td><input type='checkbox' name='"+e['_id']['$oid']+"' /></td></tr>");
-		}
-		$("#search table").replaceWith(tbl);
-	});
+	$("#search table").replaceWith(tbl);
 }
 
 function edit_table() {

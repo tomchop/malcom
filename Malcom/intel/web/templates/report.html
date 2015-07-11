@@ -21,7 +21,7 @@
 	<table class='table table-condensed'>
 		<tr><td></td>{% for field, display, format in list[0].display_fields %}<th>{{display}}</th>{% endfor %}</tr>
 		{% for associated_entity in list %}
-		<tr><td><span class="glyphicon glyphicon-resize-full unlink" alt='unlink' aria-hidden="true" data-url="{{ url_for('intel_api.unlink', src=entity._id, target=associated_entity._id) }}"></span></td>{% for field, display, format in associated_entity.display_fields %}<td>{% if field == "title" %}<a href='{{ url_for("malcom_intel.report", _id=associated_entity._id)}}'>{{associated_entity[field]}}</a>{%else%}{{associated_entity[field]}}{%endif%}</td>{% endfor %}</tr>
+		<tr><td><span class="glyphicon glyphicon-resize-full unlink" alt='unlink' aria-hidden="true" data-url="{{ url_for('intel_api.unlink', src=entity._id, target=associated_entity._id) }}" data-ajax-method='DELETE'></span></td>{% for field, display, format in associated_entity.display_fields %}<td>{% if field == "title" %}<a href='{{ url_for("malcom_intel.report", _id=associated_entity._id)}}'>{{associated_entity[field]}}</a>{%else%}{{associated_entity[field]}}{%endif%}</td>{% endfor %}</tr>
 		{%endfor%}
 	</table>
 	{%endif%}
@@ -36,7 +36,7 @@
 		<input id="query" class="form-control input-sm" data-url="{{ url_for('malcom_api.query') }}" placeholder='Enter search term'>
 		<span class="input-group-btn">
 			<button id='search-btn' class='btn btn-primary btn-sm' data-url="{{ url_for('intel_api.search') }}" type='button'>Search</button>
-			<button id='associate-btn' class='btn btn-primary btn-sm' data-url="{{ url_for('intel_api.associate', src=entity._id) }}" type='button'><span class="glyphicon glyphicon-link" aria-hidden="true"></span></button>
+			<button id='associate-btn' class='btn btn-primary btn-sm' data-ajax-method='POST' data-url="{{ url_for('intel_api.associate', src=entity._id) }}" type='button'><span class="glyphicon glyphicon-link" aria-hidden="true"></span></button>
 		</span>
 	</div>
 	<div id='search'>
