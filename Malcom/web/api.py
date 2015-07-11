@@ -33,16 +33,16 @@ class MalcomApi(Api):
         Acceptable response will be sent as per RFC 2616 section 14.1
         :param data: Python object containing response data to be transformed
         """
-        
+
         default_mediatype = kwargs.pop('fallback_mediatype', None) or self.default_mediatype
         mediatype = MalcomApi.FORMAT_MIMETYPE_MAP.get(request.args.get('output'))
-        
+
         if not mediatype:
             for accept in request.accept_mimetypes:
                 if accept[0] in self.representations:
                     mediatype = accept[0]
                     break
-        
+
         if not mediatype:
             if "*/*" in request.accept_mimetypes and len(request.accept_mimetypes) == 1:
                 mediatype = self.default_mediatype
@@ -227,7 +227,7 @@ class QueryAPI(Resource):
 
 class Data(Resource):
     decorators=[login_required]
-    
+
     def get(self):
         query = {}
         for key in request.args:
@@ -246,7 +246,7 @@ api.add_resource(Data, '/api/data/', endpoint="malcom_api.data")
 
 class DatasetAPI(Resource):
     decorators=[login_required]
-    
+
     def get(self, action, value=None):
         if action == 'remove':
             try:
@@ -257,12 +257,12 @@ class DatasetAPI(Resource):
             result = g.Model.remove_by_id(_id)
             return result
 
-        if action == 'add':    
+        if action == 'add':
             tags = request.args.get('tags')
             print tags
             return ""
             # _id = g.Model.add_text(value)
-        
+
 
 api.add_resource(DatasetAPI, '/api/dataset/<string:action>/', '/api/dataset/<string:action>/<string:value>/')
 

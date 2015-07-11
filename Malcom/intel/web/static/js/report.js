@@ -6,21 +6,42 @@ $(function() {
 
 	$("#search-btn").click(function(){
 		search_entities($('#query').val(), $(this).data('url'))
-	})
+	});
 
 	$("#associate-btn").click(function(){
 		do_associations($(this).data('url'))
+	});
+
+	$(".unlink").click(function(){
+		unlink($(this).data('url'));
 	})
 
 	console.log("report.js loaded");
 });
 
-function do_associations(url) {
-	console.log('associating')
-	params = $("#associate").serializeArray()
+function unlink(url) {
+	console.log('unlinking');
 	$.ajax({
 		url: url,
-		data: params,
+		method: "DELETE",
+	}).success(function(data) {
+		console.log('elements succesfully unlinked')
+	});
+
+}
+
+function do_associations(url) {
+	console.log('associating')
+	inputs = $("#associate").serializeArray()
+	ids = []
+	for (var i in inputs) {
+		console.log(inputs[i])
+		ids.push(inputs[i].name)
+	}
+	console.log(ids)
+	$.ajax({
+		url: url,
+		data: $.param({ids: ids}, true),
 		method: "POST",
 	}).success(function(data) {
 		console.log('elements succesfully associated')
@@ -32,10 +53,10 @@ function search_entities(query, url) {
 		url: url,
 		data: {"query": query},
 	}).success(function(data) {
-		tbl = $("<table></table>").addClass('table table-condensed');
+		tbl = $("<table id='search'></table>").addClass('table table-condensed');
 		for (var i in data){
 			e = data[i];
-			tbl.append("<tr><th>"+e['title']+"</th><td>"+e['_type']+"</td></tr>");
+			tbl.append("<tr><th>"+e['title']+"</th><td>"+e['_type']+"</td><td><input type='checkbox' name='"+e['_id']['$oid']+"' /></td></tr>");
 		}
 		$("#search table").replaceWith(tbl);
 	});

@@ -3,6 +3,8 @@ from pymongo.son_manipulator import SONManipulator
 from Malcom.intel.model.database import db
 
 
+
+
 class BaseEntity(dict):
     """docstring for BaseEntity"""
 
@@ -50,6 +52,11 @@ class BaseEntity(dict):
         link = {'src': self._id, 'dst': entity._id, 'attribs': attribs}
         db[BaseEntity.entity_graph].save(link)
 
+    def unlink(self, entity):
+        assert entity is not None
+        link = {'src': self._id, 'dst': entity._id}
+        db[BaseEntity.entity_graph].remove(link)
+
     def outgoing_links(self):
         if not self._id:
             raise ValueError("This {} has no _id set".format(self.__class__.__name__))
@@ -76,7 +83,6 @@ class BaseEntity(dict):
 
     def stix_related_elements(self):
         links = list(self.all_links())
-        print links
         rels = {}
         for _type, label in self.stix_relationships:
             rels[(_type, label)] = [e for e in links if e['_type'] == _type]
