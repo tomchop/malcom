@@ -46,6 +46,7 @@ class BaseEntity(dict):
         return db[BaseEntity.entity_collection].find_one(query)
 
     def save(self):
+        assert self.type in EntityTransform.DataTypes
         db[BaseEntity.entity_collection].save(self)
 
     def link(self, entity, attribs={}):

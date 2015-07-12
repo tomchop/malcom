@@ -5,6 +5,13 @@ $(function() {
 		edit_table();
 	});
 
+	$("#query").keydown(function(e){
+		if (e.which == 13) {
+			e.preventDefault();
+			ajax_action($("#search-btn"), search_entities, {query: $('#query').val()})
+		}
+	});
+
 	$("#search-btn").click(function(){
 		ajax_action($(this), search_entities, {query: $('#query').val()})
 	});
@@ -18,7 +25,7 @@ $(function() {
 			ids.push(inputs[i].name);
 		}
 
-		ajax_action($(this), function(){}, $.param({ids: ids}, true));
+		ajax_action($(this), function(){location.reload()}, $.param({ids: ids}, true));
 	});
 
 	$(".unlink").click(function(){
@@ -62,8 +69,16 @@ function edit_table() {
 	edit = $("#edit")
 	edit.text('[save]');
 	edit.unbind('click');
+
 	edit.click(function() {
 		update_entity();
+	});
+
+	$("#update input").keydown(function(e){
+		if (e.which == 13) {
+			e.preventDefault();
+			update_entity();
+		}
 	});
 }
 

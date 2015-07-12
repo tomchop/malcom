@@ -19,7 +19,7 @@
 	{% if list|length > 0%}
 	<h4>{{label}}</h4>
 	<table class='table table-condensed'>
-		<tr><td></td>{% for field, display, format in list[0].display_fields %}<th>{{display}}</th>{% endfor %}</tr>
+		<tr><td>Unlink</td>{% for field, display, format in list[0].display_fields %}<th>{{display}}</th>{% endfor %}</tr>
 		{% for associated_entity in list %}
 		<tr><td><span class="glyphicon glyphicon-resize-full unlink" alt='unlink' aria-hidden="true" data-url="{{ url_for('intel_api.unlink', src=entity._id, target=associated_entity._id) }}" data-ajax-method='DELETE'></span></td>{% for field, display, format in associated_entity.display_fields %}<td>{% if field == "title" %}<a href='{{ url_for("malcom_intel.report", _id=associated_entity._id)}}'>{{associated_entity[field]}}</a>{%else%}{{associated_entity[field]}}{%endif%}</td>{% endfor %}</tr>
 		{%endfor%}
