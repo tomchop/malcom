@@ -375,5 +375,4 @@ DataTypes = {
     'ip': Ip,
     'hostname': Hostname,
     'as': As,
-    'evil': Evil,
 }
