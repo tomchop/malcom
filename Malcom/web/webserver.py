@@ -143,7 +143,7 @@ def display_other(value):
     elif type(value) == list and len(value) > 0:
         return ", ".join(value)
     elif type(value) == datetime.datetime:
-        return value.strftime('%Y-%m-%d %H:%M')
+        return value.strftime('%Y-%m-%d %H:%M:%S')
 
     return "N/A"
 
@@ -431,6 +431,14 @@ def find_related(field, query, base_elts, base_ids, evil_elts):
     base_elts.values()[0]['fields'] = base_elts.values()[0].display_fields
     return render_template("results.html", field=field, value=query, base_elts=base_elts.values(), evil_elts=evil_elts, incoming=incoming_links, outgoing=outgoing_links)
 
+@app.route("/link-history/<src>/<dst>")
+@login_required
+def link_history(src, dst):
+    history = g.Model.get_link_history(src, dst)
+    rhistory = g.Model.get_link_history(dst, src)
+    src = g.Model.get(_id=ObjectId(src))
+    dst = g.Model.get(_id=ObjectId(dst))
+    return render_template('link_history.html', src=src, dst=dst, history=history, rhistory=rhistory)
 
 @app.route('/populate/')
 @login_required

@@ -1,21 +1,5 @@
 {% extends "base.html" %}
 
-{% macro display_malcom(key, value) -%}
-	{% if key == 'value' %}
-		<a href="{{ url_for('nodes', field='value', value=value) }}" class='glyphicon glyphicon-map-marker'></a>&nbsp;
-		<a href="{{ url_for('search', field='value', query=value) }}">{{ value }}</a></td>
-	{% elif key == 'tags'%}
-		{% if value | length == 0 %}
-			<span class="label label-default">N/A</span>
-		{%else%}
-			{% for tag in value %}
-				<span class="label label-tag-{{tag}}">{{tag}}</span>
-			{%endfor%}
-		{%endif%}
-	{% else %}
-		{{ value | display_other }}
-	{% endif %}
-{%- endmacro %}
 
 {% block custom_head %}
 <script src="{{ url_for('static', filename='custom_js/results.js') }}"></script>
@@ -135,7 +119,7 @@
 		<div>
 			<table class='table table-condensed'>
 				<tr>
-					<th>History</th>
+					<th style='width:10px'></th>
 					<th>Value</th>
 					<th>Tags</th>
 					<th>Attributes</th>
@@ -144,7 +128,7 @@
 				</tr>
 				{% for link in outgoing.values()%}
 				<tr>
-					<td><a class='glyphicon glyphicon-time' href="#"></a></td>
+					<td><a class='glyphicon glyphicon-time' href="{{ url_for('link_history', src=link['dst']['_id'], dst=link['src']['_id']) }}">
 					<td>{{ display_malcom('value', link['dst']['value']) }}</td>
 					<td>{{ display_malcom('tags', link['dst']['tags']) }}</td>
 					<td>{{ display_malcom('attribs', link['attribs']) }}</td>
@@ -163,7 +147,7 @@
 		<div>
 			<table class='table table-condensed'>
 				<tr>
-					<th>History</th>
+					<th style='width:10px'></th>
 					<th>Value</th>
 					<th>Tags</th>
 					<th>Attributes</th>
@@ -172,7 +156,7 @@
 				</tr>
 				{% for link in incoming.values()%}
 				<tr>
-					<td><a class='glyphicon glyphicon-time' href="#"></a></td>
+					<td><a class='glyphicon glyphicon-time' href="{{ url_for('link_history', src=link['src']['_id'], dst=link['dst']['_id']) }}"></a></td>
 					<td>{{ display_malcom('value', link['src']['value']) }}</td>
 					<td>{{ display_malcom('tags', link['src']['tags']) }}</td>
 					<td>{{ display_malcom('attribs', link['attribs']) }}</td>

@@ -1,3 +1,21 @@
+{% macro display_malcom(key, value) -%}
+  {% if key == 'value' %}
+    <a href="{{ url_for('nodes', field='value', value=value) }}" class='glyphicon glyphicon-map-marker'></a>&nbsp;
+    <a href="{{ url_for('search', field='value', query=value) }}">{{ value }}</a>
+  {% elif key == 'tags'%}
+    {% if value | length == 0 %}
+      <span class="label label-default">N/A</span>
+    {%else%}
+      {% for tag in value %}
+        <span class="label label-tag-{{tag}}">{{tag}}</span>
+      {%endfor%}
+    {%endif%}
+  {% else %}
+    {{ value | display_other }}
+  {% endif %}
+{%- endmacro %}
+
+
 <!DOCTYPE html>
 <html lang="en">
   <head>

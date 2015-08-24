@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block main %}
+<div class='col-md-12'>
+	<h3>Link history: <a href="{{ url_for('search', field='value', query=src['value']) }}">{{ src['value'] }}</a> and <a href="{{ url_for('search', field='value', query=dst['value']) }}">{{ dst['value'] }}</a></h3>
+	<div role="tabpanel">
+		<ul id='historyTabs' class='nav nav-tabs' role="tablist">
+			<li role='presentation' class='active'><a href='#table' aria-controls="table" role="tab" data-toggle='tab'>Table</a></li>
+			<li role='presentation'><a href='#timeline' aria-controls="timeline" role="tab" data-toggle='tab'>Timeline</a></li>
+		</ul>
+
+		<div id='historyTabsContent' class='tab-content'>
+			<div role="tabpanel" class='tab-pane active' id='table'>
+			{%if history|length > 1%}
+				<h4>{{src['value']}} → {{dst['value']}}</h4>
+				<table class='table table-condensed table-hover'>
+					<tr><th>Attribute</th><th>First seen</th><th>Last seen</th></tr>
+					{% for h in history%}
+					<tr {% if loop.index0 == 0%} class='active' {%endif%}><td>{{h['attribs']}}</td><td>{{h['first_seen']}}</td><td>{{h['last_seen']}}</td></tr>
+					{%endfor%}
+				</table>
+			{%endif%}
+			{%if rhistory|length > 1%}
+				<h4>{{dst['value']}} → {{src['value']}}</h4>
+				<table class='table table-condensed table-hover'>
+					<tr><th>Attribute</th><th>First seen</th><th>Last seen</th></tr>
+					{% for h in rhistory%}
+					<tr {% if loop.index0 == 0%} class='active' {%endif%}><td>{{h['attribs']}}</td><td>{{h['first_seen']}}</td><td>{{h['last_seen']}}</td></tr>
+					{%endfor%}
+				</table>
+			{%endif%}
+			</div>
+
+			<div role="tabpanel" class='tab-pane' id='timeline'>
+			Coming soon...
+			</div>
+		</div>
+
+
+	</div>
+</div>
+{% endblock %}

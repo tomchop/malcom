@@ -95,6 +95,23 @@ class Model:
 
     # =============== link operations =================
 
+    def get_link_history(self, src, dst):
+        conns = list(self.graph.find({'src': ObjectId(src), 'dst': ObjectId(dst)}, sort=[('last_seen', pymongo.DESCENDING)]))
+        ids = set()
+        for c in conns:
+            ids.add(c['src'])
+            ids.add(c['dst'])
+        ids = list(ids)
+
+        elts = {e['_id']:e for e in self.elements.find({"_id": {"$in": ids}})}
+        for c in conns:
+            c['src'] = elts[c['src']]
+            c['dst'] = elts[c['dst']]
+
+        return conns
+
+
+
     def connect(self, src, dst, attribs="", commit=True):
         if not src or not dst:
             return None
