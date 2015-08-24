@@ -103,18 +103,30 @@ class Model:
 
             while True:
                 try:
-                    conn = self.graph.find_one({'src': ObjectId(src._id), 'dst': ObjectId(dst._id)})
+                    conn = self.graph.find_one({'src': ObjectId(src._id), 'dst': ObjectId(dst._id)}, sort=[('last_seen', pymongo.DESCENDING)])
                     break
                 except Exception, e:
                     debug_output("Could not find connection from %s: %s" % (ObjectId(src._id), e), 'error')
 
-            # if the connection already exists, just modify attributes and last seen time
+            # if the connection already exists, check attributes
+            oldconn = None
+
             if conn:
-                if attribs != "":
+                if conn['attribs'] != attribs:  # Attributes have changed. New, updated link is created
+                    oldconn = conn
+                    conn = {}
+                    conn['src'] = src._id
+                    conn['dst'] = dst._id
                     conn['attribs'] = attribs
+                    conn['first_seen'] = datetime.datetime.utcnow()
+                    conn['latest'] = True
+                    oldconn['latest'] = False
+                    debug_output("(updated link from %s to %s [%s])" % (str(src._id), str(dst._id), attribs), type='model')
+
+
                 conn['last_seen'] = datetime.datetime.utcnow()
 
-            # if not, change the connection
+            # if not, create the connection
             else:
                 conn = {}
                 conn['src'] = src._id
@@ -122,11 +134,14 @@ class Model:
                 conn['attribs'] = attribs
                 conn['first_seen'] = datetime.datetime.utcnow()
                 conn['last_seen'] = datetime.datetime.utcnow()
+                conn['latest'] = True
                 debug_output("(linked %s to %s [%s])" % (str(src._id), str(dst._id), attribs), type='model')
 
             if commit:
                 while True:
                     try:
+                        if oldconn:
+                            self.graph.save(oldconn)
                         self.graph.save(conn)
                         break
                     except Exception, e:
@@ -178,8 +193,8 @@ class Model:
 
         original_ids = [e['_id'] for e in elts]
 
-        new_edges = list(self.graph.find({'$or': [
-            {'src': {'$in': original_ids}}, {'dst': {'$in': original_ids}}
+        new_edges = list(self.graph.find({'latest': True, '$or': [
+            {'src': {'$in': original_ids}}, {'dst': {'$in': original_ids}},
         ]}))
 
         ids = set()

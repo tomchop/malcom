@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 
 {% macro display_malcom(key, value) -%}
-	{% if key == 'tags'%}
+	{% if key == 'value' %}
+		<a href="{{ url_for('nodes', field='value', value=value) }}" class='glyphicon glyphicon-map-marker'></a>&nbsp;
+		<a href="{{ url_for('search', field='value', query=value) }}">{{ value }}</a></td>
+	{% elif key == 'tags'%}
 		{% if value | length == 0 %}
 			<span class="label label-default">N/A</span>
 		{%else%}
@@ -126,81 +129,61 @@
 		</div>
 	{%endif%}
 
-		<h3 class='page-header'>Related elements</h3>
+		{% if outgoing|length > 0 %}
+		<h3>Links (outgoing)</h3>
 
-		<ul id='relatedTabs' class='nav nav-tabs'>
-			{% for r in related_elements %}
-			<li {% if loop.index0 == 0%}class='active'{%endif%}><a href='#{{r}}' data-toggle='tab'>{{r}}</a></li>
-			{% endfor %}
-		</ul>
+		<div>
+			<table class='table table-condensed'>
+				<tr>
+					<th>History</th>
+					<th>Value</th>
+					<th>Tags</th>
+					<th>Attributes</th>
+					<th>Link first seen</th>
+					<th>Link last seen</th>
+				</tr>
+				{% for link in outgoing.values()%}
+				<tr>
+					<td><a class='glyphicon glyphicon-time' href="#"></a></td>
+					<td>{{ display_malcom('value', link['dst']['value']) }}</td>
+					<td>{{ display_malcom('tags', link['dst']['tags']) }}</td>
+					<td>{{ display_malcom('attribs', link['attribs']) }}</td>
+					<td>{{ display_malcom('first_seen', link['first_seen']) }}</td>
+					<td>{{ display_malcom('last_seen', link['last_seen']) }}</td>
+				</tr>
+				{%endfor%}
+			</table>
+		</div>
+		{%endif%}
 
-		<div id='relatedTabsContent' class='tab-content'>
-			{% for r in related_elements %}
-			<div class='tab-pane {% if loop.index0 == 0%}active{%endif%}' id='{{r}}'>
-				<table class='table table-condensed'>
-					<tr>{% for label in related_elements[r][0].display_fields if label[0] not in ['type'] %}<th>{{ label[1] }}</th>{% endfor %}</tr>
-					{% for n in related_elements[r] %}
-					<tr>
-						{% for label in n.display_fields if label[0] not in ['type'] %}
-							{% if label[0] == 'value' %}
-								<td>
-								<a href="{{ url_for('nodes', field=label[0], value=n[label[0]]) }}" class='glyphicon glyphicon-map-marker'></a>&nbsp;
-								<a href="{{ url_for('search', field=label[0], query=n[label[0]]) }}">{{ n[label[0]] }}</a>
-								</td>
-							{%else%}
-								<td>{{ display_malcom(label[0], n[label[0]]) }}</td>
-							{%endif%}
-						{% endfor %}
-					</tr>
-					{%endfor%}
-				</table>
-			</div>
-			{% endfor %}
+		{% if incoming|length > 0 %}
+
+		<h3>Links (incoming)</h3>
+
+		<div>
+			<table class='table table-condensed'>
+				<tr>
+					<th>History</th>
+					<th>Value</th>
+					<th>Tags</th>
+					<th>Attributes</th>
+					<th>Link first seen</th>
+					<th>Link last seen</th>
+				</tr>
+				{% for link in incoming.values()%}
+				<tr>
+					<td><a class='glyphicon glyphicon-time' href="#"></a></td>
+					<td>{{ display_malcom('value', link['src']['value']) }}</td>
+					<td>{{ display_malcom('tags', link['src']['tags']) }}</td>
+					<td>{{ display_malcom('attribs', link['attribs']) }}</td>
+					<td>{{ display_malcom('first_seen', link['first_seen']) }}</td>
+					<td>{{ display_malcom('last_seen', link['last_seen']) }}</td>
+				</tr>
+				{%endfor%}
+			</table>
 		</div>
 
-		<h3 class='page-header'>Links</h3>
-
-
-		<div role="tabpanel">
-
-		<ul id='linkedTabs' class='nav nav-tabs'>
-			{% for r in linked %}
-			<li {% if loop.index0 == 0%}class='active'{%endif%}><a href='#{{r}}' data-toggle='tab'>{{r}}</a></li>
-			{% endfor %}
-		</ul>
-
-		<div id='linkedTabsContent' class='tab-content'>
-			{% for r in linked %}
-				<div class='tab-pane {% if loop.first %}active{%endif%}' id='{{r}}'>
-					{% for dest in linked[r]%}
-						<div><a href="#" class="toggle-control" data-toggle-target='{{r}}{{loop.index0}}'>{{dest}}</a></div>
-						<table id='{{r}}{{loop.index0}}' class='table table-condensed toggle-hidden'>
-							<tr>
-							{% for label in linked[r][dest][0].display_fields %}
-								<th>{{label[1]}}</th>
-							{%endfor%}
-							</tr>
-
-							{% for e in linked[r][dest] %}
-							<tr>
-								{% for label in e.display_fields %}
-
-									{% if label[0] == 'value' %}
-										<td>
-										<a href="{{ url_for('nodes', field=label[0], value=e[label[0]]) }}" class='glyphicon glyphicon-map-marker'></a>&nbsp;
-										<a href="{{ url_for('search', field=label[0], query=e[label[0]]) }}">{{ e[label[0]] }}</a></td>
-									{%else%}
-										<td>{{ display_malcom(label[0], e[label[0]]) }}</td>
-									{%endif%}
-								{% endfor %}
-							</tr>
-							{% endfor %}
-						</table>
-					{% endfor %}
-				</div>
-			{% endfor %}
-		</div>
-	</div>
+		{%endif%}
 </div>
 
 

@@ -1,7 +1,6 @@
 import datetime
 import os
-import sys
-from bson.json_util import dumps, loads
+from bson.json_util import dumps
 
 from Malcom.auxiliary.toolbox import debug_output
 import Malcom.auxiliary.toolbox as toolbox
@@ -40,7 +39,6 @@ class Element(dict):
         last_seen = self.get('date_last_seen', "")
         last_analysis = self.get('last_analysis', "")
         return u"{},{},{},{},{},{}".format(value, _type, tags, first_seen, last_seen, last_analysis)
-
 
     def __getattr__(self, name):
         return self.get(name, None)
