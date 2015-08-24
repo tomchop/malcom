@@ -103,3 +103,4 @@ function update_entity() {
 		});
 	});
 }
+
