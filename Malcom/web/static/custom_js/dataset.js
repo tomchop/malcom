@@ -126,11 +126,16 @@ function get_dataset(query, url) {
 	  				if (v == "" || v == undefined)
 	  					row.append($("<td />").text('-'))
 	  				else if (k == 'tags')
-	  					row.append($("<td />").addClass('tags_links'))
+	  					row.append($("<td />").append(display_tags(v)))
 	  				else if (['date_created', 'date_updated', 'last_analysis', 'date_first_seen', 'date_last_seen'].indexOf(k) != -1)
 	  					row.append($("<td />").text(format_date(new Date(v.$date))).addClass('timestamp'))
+	  				else if (k == 'value') {
+	  					l1 = $("<a class='graphicon' href='"+url_static_prefix+"nodes/value/"+encodeURIComponent(v)+"'><span class='glyphicon glyphicon-map-marker' aria-hidden='true'></span></a>")
+	  					l2 = $('<a href="'+url_static_prefix+'search/?query='+v+'">'+v+'</a>')
+	  					row.append($("<td class='value'></td>").append(l1).append(l2))
+	  				}
 	  				else
-	  					row.append("<td><a href='"+url_static_prefix+"nodes/"+k+"/"+encodeURIComponent(v)+"'>"+v+"</a></td>")
+	  					row.append("<td>"+v+"</td>")
 	  		}
 
 	  		row.append("<td><span class='glyphicon glyphicon-remove' onclick='javascript:dataset_remove(\""+elt['_id']['$oid']+"\")'></span></td>")

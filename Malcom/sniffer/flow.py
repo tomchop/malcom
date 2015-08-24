@@ -196,7 +196,7 @@ class Flow(object):
 		self.packet_count = 0
 		self.payload = ""
 		self.decoded_flow = None
-		self.data_transfered = 0
+		self.data_transferred = 0
 		self.packet_count = 0
 
 		if pkt:
@@ -239,7 +239,7 @@ class Flow(object):
 		elif self.protocol == 'UDP':
 			self.packets += pkt
 			self.payload += str(pkt[UDP].payload)
-			self.data_transfered += len(self.payload)
+			self.data_transferred += len(self.payload)
 		else:
 			self.packets += pkt
 
@@ -255,7 +255,7 @@ class Flow(object):
 
 			if Raw in pkt:
 				self.payload += pkt[Raw].load
-				self.data_transfered += len(pkt[Raw].load)
+				self.data_transferred += len(pkt[Raw].load)
 
 			self.packets += pkt
 			self.seq += 1
@@ -284,13 +284,13 @@ class Flow(object):
 
 				if Raw in pkt:
 					self.payload += str(pkt[Raw].load)
-					self.data_transfered += len(pkt[Raw].load)
+					self.data_transferred += len(pkt[Raw].load)
 
 				return True
 
 		return False
 
-	def get_statistics(self, yara_rules=None, include_payload=False, encoding='raw'):
+	def get_statistics(self, include_payload=False, encoding='raw'):
 
 		update = {
 				'timestamp': self.timestamp,
@@ -301,15 +301,12 @@ class Flow(object):
 				'dst_port': self.dst_port,
 				'protocol': self.protocol,
 				'packet_count': self.packet_count,
-				'data_transfered': self.data_transfered,
+				'data_transferred': self.data_transferred,
 				'tls': self.tls,
 				}
 
 		# we'll use the type and info fields
 		self.decoded_flow = Decoder.decode_flow(self)
-		if yara_rules:
-			matches = self.run_yara(yara_rules)
-			update['yara_matches'] = matches
 
 		update['decoded_flow'] = self.decoded_flow
 
@@ -330,7 +327,7 @@ class Flow(object):
 		f.dst_port = flow['dst_port']
 		f.protocol = flow['protocol']
 		f.packet_count = flow['packet_count']
-		f.data_transfered = flow['data_transfered']
+		f.data_transferred = flow['data_transferred']
 		f.tls = flow['tls']
 
 		if f.tls:
@@ -358,17 +355,6 @@ class Flow(object):
 			return payload.encode('base64')
 		if encoding == 'binary':
 			return Binary(payload)
-
-	def run_yara(self, yara_rules):
-		matches = {}
-		for m in yara_rules.match(data=self.get_payload(encoding='raw')): # match against plaintext / decrypted paylaod
-			if matches.get(m.rule, False) == False:
-				matches[m.rule] = []
-			matches[m.rule].append(m.strings)
-
-		return matches
-
-
 
 	def print_statistics(self):
 		print "%s:%s  ->  %s:%s (%s, %s packets, %s buff)" % (self.src_addr, self.src_port, self.dst_addr, self.dst_port, self.protocol, len(self.packets), len(self.payload))

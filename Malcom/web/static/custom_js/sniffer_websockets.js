@@ -60,7 +60,7 @@ function snifferWebSocketHandler(msg) {
     if (data.type == 'flowstatus') {
         table = $('#flow-list')
         table.empty()
-        table.append("<tr><th>Timestamp</th><th style='text-align:right;'>Source</th><th></th><th style='text-align:right;'>Destination</th><th></th><th>Proto</th><th>#</th><th>Data</th><th>Decoded as</th><th>Raw payload</th><th>YARA</th></tr>") //<th>First activity</th><th>Last activity</th><th>Content</th>
+        table.append("<tr><th>Payload</th><th>Timestamp</th><th style='text-align:left;'>Flow</th><th></th><th></th><th>Proto</th><th>#</th><th>Data</th><th>Decoded as</th></tr>") //<th>First activity</th><th>Last activity</th><th>Content</th>
         for (var i in data.flows) {
             flow = data.flows[i]
             row = $('<tr />').attr('id',flow['fid'])
@@ -158,55 +158,6 @@ function highlight_response(row) {
 function netflow_row(flow, row) {
     // row.append($('<td />').text(flow['src_addr']+":"+flow['src_port']))
     // row.append($('<td />').text(flow['dst_addr']+":"+flow['dst_port']))
-    d = new Date(flow['timestamp'] * 1000)
-    row.append($('<td />').text(format_date(d, true)))
-    row.append($('<td />').text(flow['src_addr']).css('text-align', 'right'))
-    row.append($('<td />').text(flow['src_port']))
-    row.append($('<td />').text(flow['dst_addr']).css('text-align', 'right'))
-    row.append($('<td />').text(flow['dst_port']))
-    row.append($('<td />').text(flow['protocol']))
-    row.append($('<td />').text(flow['packet_count']))
-
-    // calculate transfered data
-
-    data_transfered = flow['data_transfered']
-    unit = 0
-    while (data_transfered > 1024) {
-        data_transfered = data_transfered / 1024;
-        unit++ ;
-    }
-
-    data_transfered = Math.round(data_transfered*100)/100
-
-    if (unit == 0)
-        unit = ' B'
-    else if (unit == 1)
-        unit = ' KB'
-    else if (unit == 2)
-        unit = ' MB'
-    else if (unit == 3)
-        unit = ' GB'
-
-    row.append($('<td />').text(data_transfered + unit))
-
-    // setup decoding
-    if (flow.decoded_flow) {
-        decoded = $("<td />").text(flow.decoded_flow.info)
-        decoded.tooltip({ 'title': flow.decoded_flow.type, 'container': 'body'})
-        row.addClass(flow.decoded_flow.flow_type)
-    }
-    else {
-        decoded = $("<td />").text("N/A")
-    }
-
-    row.mouseover(function() {
-        highlight_response($(this))
-    });
-    row.mouseout(function() {
-        highlight_response($(this))
-    });
-
-    row.append(decoded)
 
     // setup payload visor
 
@@ -230,19 +181,72 @@ function netflow_row(flow, row) {
 
     row.append(payload)
 
-    // YARA matches
-    icon_yara = $("<i />").addClass('icon-flag');
-    matching_rules = []
-    for (var i in flow.yara_matches) {
-        matching_rules.push(i)
-    }
-    if (matching_rules.length > 0) {
-        icon_yara.tooltip({ 'title': matching_rules.join(', '), 'container': 'body'})
-        yara = $('<td />').append(icon_yara)
-    }
-    else { yara = $('<td />') }
+    d = new Date(flow['timestamp'] * 1000)
+    row.append($('<td />').text(format_date(d, true)).addClass('flow-timestamp'))
+    // flow_desc = flow['src_addr'] + ":" + flow['src_port'] + " → " + flow['dst_addr'] + ":" + flow['dst_port']
+    // row.append($('<td />').text(flow_desc).css('text-align', 'left'))
 
-    row.append(yara)
+    // row.append($('<td />').text(flow['src_addr'] + " (" + flow['src_port'] + ")"))
+    src_addr = $('<span />').text(flow['src_addr']).addClass('flow-addr')
+    dst_addr = $('<span />').text(flow['dst_addr']).addClass('flow-addr')
+    src_port = $('<span />').text("  "+flow['src_port']).addClass('flow-port')
+    dst_port = $('<span />').text(" "+flow['dst_port']).addClass('flow-port')
+
+    row.append($('<td />').append(src_addr).append(src_port))
+    row.append($('<td />').text(" → "))
+    row.append($('<td />').append(dst_addr).append(dst_port))
+    // row.append($('<td />').text(flow['dst_addr'] + " (" + flow['dst_port'] + ")"))
+
+    // row.append($('<td />').text(flow['src_addr']).css('text-align', 'right'))
+    // row.append($('<td />').text(flow['src_port']))
+    // row.append($('<td />').text(flow['dst_addr']).css('text-align', 'right'))
+    // row.append($('<td />').text(flow['dst_port']))
+
+    row.append($('<td />').text(flow['protocol']).addClass('flow-protocol'))
+    row.append($('<td />').text(flow['packet_count']).addClass('flow-packet-count'))
+
+    // calculate transfered data
+
+    data_transferred = flow['data_transferred']
+    unit = 0
+    while (data_transferred > 1024) {
+        data_transferred = data_transferred / 1024;
+        unit++ ;
+    }
+
+    data_transferred = Math.round(data_transferred*100)/100
+
+    if (unit == 0)
+        unit = ' B'
+    else if (unit == 1)
+        unit = ' KB'
+    else if (unit == 2)
+        unit = ' MB'
+    else if (unit == 3)
+        unit = ' GB'
+
+    row.append($('<td />').text(data_transferred + unit).addClass('flow-data-transferred'))
+
+    // setup decoding
+    if (flow.decoded_flow) {
+        decoded = $("<td />").text(flow.decoded_flow.info)
+        decoded.tooltip({ 'title': flow.decoded_flow.type, 'container': 'body'})
+        row.addClass(flow.decoded_flow.flow_type)
+    }
+    else {
+        decoded = $("<td />").text("N/A")
+    }
+
+    row.mouseover(function() {
+        highlight_response($(this))
+    });
+    row.mouseout(function() {
+        highlight_response($(this))
+    });
+
+    row.append(decoded)
+
+    row.css('white-space', 'nowrap')
 
     return row
 }

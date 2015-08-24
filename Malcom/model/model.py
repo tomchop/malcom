@@ -16,9 +16,7 @@ from bson.json_util import dumps as bson_dumps
 from bson.json_util import loads as bson_loads
 
 from Malcom.auxiliary.toolbox import *
-from Malcom.model.datatypes import Hostname, Url, Ip, As
-from Malcom.model.datatypes import DataTypes
-# from Malcom.intel.model.entities import DataTypes as EntityDataTypes
+from Malcom.model.datatypes import Hostname, Url, Ip, As, DataTypes
 from Malcom.model.user_management import UserManager
 
 # DataTypes = dict(EntityDataTypes, **ElementDataTypes)
@@ -81,6 +79,7 @@ class Model:
         self.elements.ensure_index([('date_last_seen', -1), ('value', 1)])
         self.elements.ensure_index('value', unique=True, dropDups=True)
         self.elements.ensure_index('tags')
+        self.elements.ensure_index('evil.source')
         self.elements.ensure_index('next_analysis')
         self.elements.ensure_index('last_analysis')
         self.elements.ensure_index('bgp')
@@ -109,10 +108,10 @@ class Model:
                 except Exception, e:
                     debug_output("Could not find connection from %s: %s" % (ObjectId(src._id), e), 'error')
 
-
             # if the connection already exists, just modify attributes and last seen time
             if conn:
-                if attribs != "": conn['attribs'] = attribs
+                if attribs != "":
+                    conn['attribs'] = attribs
                 conn['last_seen'] = datetime.datetime.utcnow()
 
             # if not, change the connection
@@ -310,6 +309,7 @@ class Model:
             # critical section starts here
             tags = element.pop('tags', [])  # so tags in the db do not get overwritten
             evil = element.pop('evil', [])
+
             date_first_seen = element.pop('date_first_seen', datetime.datetime.utcnow())
             date_last_seen = element.pop('date_last_seen', datetime.datetime.utcnow())
 
@@ -324,14 +324,16 @@ class Model:
                 except Exception, e:
                     debug_output("Could not fetch %s: %s" % (element['value'], e), 'error')
 
-            if _element != None:
+            if _element is not None:
                 for key in element:
-                    if key == 'tags': continue
+                    if key == 'tags':
+                        continue
                     _element[key] = element[key]
                 _element['tags'] = list(set([t.strip().lower() for t in _element['tags'] + tags]))
-                if evil != []:
-                    _element['evil'] = _element['evil'] + evil
+                for e in evil:
+                    _element.add_evil(e)
                 element = _element
+
                 new = False
             else:
                 new = True
@@ -355,7 +357,9 @@ class Model:
                 element['date_last_seen'] = date_last_seen
 
             # tags are all lowercased and stripped
+
             element['tags'] = [t.lower().strip() for t in element['tags']]
+
 
             while True:
                 try:
@@ -419,7 +423,7 @@ class Model:
 
     def clear_db(self):
         for c in self._db.collection_names():
-            if c in ['elements', 'graph', 'sniffer_sessions', 'feeds', 'history']:  # if c != "system.indexes":
+            if c in ['elements', 'graph', 'sniffer_sessions', 'feeds', 'history', 'modules']:  # if c != "system.indexes":
                 self._db[c].drop()
 
     def list_db(self):
@@ -531,11 +535,10 @@ class Model:
 
     def load_module_entry(self, session_id, module_name):
         entry = self.modules.find_one({'session_id': session_id, 'name': module_name})
-        if entry:
-            return bson_loads(entry['entry'])
+        if not entry or entry.get('timeout', datetime.datetime.utcnow() - datetime.timedelta(hours=24)) < datetime.datetime.utcnow():
+            return None
         else:
-            return {}
+            return bson_loads(entry['entry'])
 
     def save_module_entry(self, session_id, module_name, entry, timeout=None):
         asd = self.modules.update({'name': module_name, 'session_id': session_id}, {'name': module_name, 'session_id': session_id, 'entry': bson_dumps(entry), 'timeout': timeout}, upsert=True)
-

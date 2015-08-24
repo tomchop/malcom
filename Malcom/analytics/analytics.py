@@ -1,329 +1,338 @@
-import dateutil, time, threading, pickle, gc, datetime, os
-from bson.objectid import ObjectId
-from multiprocessing import Process#, JoinableQueue as Queue, Lock
-
+import time
+import threading
+import pickle
+import datetime
+import os
+from multiprocessing import Process  # JoinableQueue as Queue, Lock
+import traceback
 import Queue as Queue
 from threading import Thread, Lock
 
 from Malcom.auxiliary.toolbox import *
 from Malcom.model.model import Model
-from Malcom.model.datatypes import Hostname, Ip, Url, As
+from Malcom.model.datatypes import As
 from Malcom.analytics.messenger import AnalyticsMessenger
+
 
 class Worker(Thread):
 
-	def __init__(self, name=None, queue_lock=None, hostname_lock=None):
-		super(Worker, self).__init__()
-		self.engine = None
-		self.work = False
+    def __init__(self, name=None, queue_lock=None, hostname_lock=None):
+        super(Worker, self).__init__()
+        self.engine = None
+        self.work = False
 
-		if name: self.name = name
-		self.queue_lock = queue_lock
-		self.hostname_lock = hostname_lock
+        if name:
+            self.name = name
+        self.queue_lock = queue_lock
+        self.hostname_lock = hostname_lock
 
-		debug_output("[%s | PID %s] STARTING" % (self.name, os.getpid()))
+        debug_output("[%s | PID %s] STARTING" % (self.name, os.getpid()))
 
-		# deferred_queue = Queue()
+        # deferred_queue = Queue()
 
-	def work_sync(self, elt, tags):
-		tt0 = datetime.datetime.now()
-		new = elt.analytics()
-		debug_output("[%s | PID %s | elt: %s] ANALYTICS DONE (%s NEW) (%s)" % (self.name, os.getpid(), elt['value'], len(new), datetime.datetime.now() -tt0), type='debug')
-		self.engine.process_new(elt, new)
-		debug_output("[%s | PID %s | elt: %s] NEW PROCESSED" % (self.name, os.getpid(), elt['value']), type='debug')
-		self.engine.save_element(elt, tags)
-		debug_output("[%s | PID %s | elt: %s] NEW SAVED" % (self.name, os.getpid(), elt['value']), type='debug')
-		self.engine.progress += 1
-		# self.engine.notify_progress(elt['value'])
-		# debug_output("[%s | PID %s | elt: %s] NOTIFIED" % (self.name, os.getpid(), elt['value']), type='debug')
+    def work_sync(self, elt, tags):
+        tt0 = datetime.datetime.now()
 
-		# t = datetime.datetime.now()
+        if not elt.last_updated:
+            new = elt.analytics()
 
+            debug_output("[%s | PID %s | elt: %s] ANALYTICS DONE (%s NEW) (%s)" % (self.name, os.getpid(), elt['value'], len(new), datetime.datetime.now() - tt0), type='debug')
+            elt = self.engine.process_new(elt, new)
 
-	def work_async(self, elt, tags):
-		# get analysis time out of the way
-		elt['last_analysis'] = datetime.datetime.utcnow()
-		elt['next_analysis'] = elt['last_analysis'] + datetime.timedelta(seconds=elt['refresh_period'])
-		elt = self.engine.save_element(elt, tags)
+            debug_output("[%s | PID %s | elt: %s] NEW PROCESSED" % (self.name, os.getpid(), elt['value']), type='debug')
+            self.engine.progress += 1
 
-		# do the actual analysis
-		t = Thread(target=self.work_sync, args=(elt, tags))
-		t.daemon = True
-		t.start()
+        elif elt.last_updated + datetime.timedelta(minutes=elt.deprecation) < datetime.datetime.utcnow():
+            self.engine.data.remove_element(elt)
 
-	def run(self):
-		self.work = True
-		try:
-			while self.work:
+    def work_async(self, elt, tags):
+        # get analysis time out of the way
+        elt['last_analysis'] = datetime.datetime.utcnow()
+        elt['next_analysis'] = elt['last_analysis'] + datetime.timedelta(seconds=elt['refresh_period'])
+        elt = self.engine.save_element(elt, tags)
 
-				t0 = datetime.datetime.now()
+        # do the actual analysis
+        t = Thread(target=self.work_sync, args=(elt, tags))
+        t.start()
 
-				with self.queue_lock:
-					debug_output("[%s | PID %s] WAITING FOR NEW ELT (size: %s)" % (self.name, os.getpid(), self.engine.elements_queue.qsize()), type='debug')
-					elt = self.engine.elements_queue.get()
+    def run(self):
+        self.work = True
+        try:
+            while self.work:
 
-				elt = pickle.loads(elt)
-				if elt == "BAIL":
-					debug_output("[%s | PID %s] GOT BAIL MESSAGE" % (self.name, os.getpid()), type='debug')
-					self.work = False
-					continue
+                t0 = datetime.datetime.now()
 
-				with self.queue_lock:
-					debug_output("[%s | PID %s] Started work on %s %s. Queue size: %s" % (self.name, os.getpid(), elt['type'], elt['value'], self.engine.elements_queue.qsize()), type='analytics')
+                with self.queue_lock:
+                    debug_output("[%s | PID %s] WAITING FOR NEW ELT (size: %s)" % (self.name, os.getpid(), self.engine.elements_queue.qsize()), type='debug')
+                    elt = self.engine.elements_queue.get()
 
-				type_ = elt['type']
-				tags = elt['tags']
+                elt = pickle.loads(elt)
+                if elt == "BAIL":
+                    debug_output("[%s | PID %s] GOT BAIL MESSAGE" % (self.name, os.getpid()), type='debug')
+                    self.work = False
+                    continue
 
-				if type_ == 'hostname':
-					self.work_async(elt, tags)
-				else:
-					self.work_sync(elt, tags)
+                with self.queue_lock:
+                    debug_output("[%s | PID %s] Started work on %s %s. Queue size: %s" % (self.name, os.getpid(), elt['type'], elt['value'], self.engine.elements_queue.qsize()), type='analytics')
 
-				t = datetime.datetime.now()
-				debug_output("Finished analyzing %s in %s" %(elt['value'], t-t0))
-				with self.queue_lock:
-					self.engine.elements_queue.task_done()
+                type_ = elt['type']
+                tags = elt['tags']
 
-			debug_output("[%s | PID %s] EXITING\n" % (self.name, os.getpid()), type='error')
-			with self.queue_lock:
-				self.engine.elements_queue.task_done()
-			return
+                if type_ == 'hostname':
+                    self.work_async(elt, tags)
+                else:
+                    self.work_sync(elt, tags)
 
-		except Exception, e:
-			debug_output("An error occured in [%s | PID %s]: %s\nelt info:\n%s" % (self.name, os.getpid(), e, elt), type="error")
-			with self.queue_lock:
-				self.engine.elements_queue.task_done()
-			return
+                t = datetime.datetime.now()
+                debug_output("Finished analyzing {} in {}".format(elt['value'], t-t0))
+                with self.queue_lock:
+                    self.engine.elements_queue.task_done()
 
-	def stop(self):
-		self.work = False
+            debug_output("[%s | PID %s] EXITING\n" % (self.name, os.getpid()), type='error')
+            with self.queue_lock:
+                self.engine.elements_queue.task_done()
+            return
 
+        except Exception, e:
+            debug_output("An error occured in [%s | PID %s]: %s\nelt info:\n%s" % (self.name, os.getpid(), e, repr(elt)), type="error")
+            print traceback.format_exc()
+            with self.queue_lock:
+                self.engine.elements_queue.task_done()
+            return
+
+    def stop(self):
+        self.work = False
 
 
 class Analytics(Process):
 
-	def __init__(self, max_workers=4, setup={}):
-		super(Analytics, self).__init__()
-		self.data = Model(setup)
-		self.max_workers = max_workers
-		self.active = False
-		self.active_lock = threading.Lock()
-		# self.process_lock = threading.Lock()
-		self.status = "Inactive"
-		self.thread = None
-		self.progress = 0
-		self.workers = []
-		self.elements_queue = None
-		self.once = False
-		self.run_analysis = False
+    def __init__(self, max_workers=4, setup={}):
+        super(Analytics, self).__init__()
+        self.data = Model(setup)
+        self.max_workers = max_workers
+        self.active = False
+        self.active_lock = threading.Lock()
+        self.status = "Inactive"
+        self.thread = None
+        self.progress = 0
+        self.workers = []
+        self.elements_queue = None
+        self.once = False
+        self.run_analysis = False
+        self.setup = setup
 
+    def save_element(self, element, tags=[], with_status=False):
+        element.upgrade_tags(tags)
+        return self.data.save(element, with_status=with_status)
 
-	def save_element(self, element, tags=[], with_status=False):
-		element.upgrade_tags(tags)
-		return self.data.save(element, with_status=with_status)
+    # graph function
+    def add_artifacts(self, data, tags=[]):
+        artifacts = find_artifacts(data)
 
-	# graph function
-	def add_artifacts(self, data, tags=[]):
-		artifacts = find_artifacts(data)
+        added = []
+        for url in artifacts['urls']:
+            added.append(self.save_element(url, tags))
 
-		added = []
-		for url in artifacts['urls']:
-			added.append(self.save_element(url, tags))
+        for hostname in artifacts['hostnames']:
+            added.append(self.save_element(hostname, tags))
 
-		for hostname in artifacts['hostnames']:
-			added.append(self.save_element(hostname, tags))
+        for ip in artifacts['ips']:
+            added.append(self.save_element(ip, tags))
 
-		for ip in artifacts['ips']:
-			added.append(self.save_element(ip, tags))
+        return added
 
-		return added
+    # elements analytics
 
+    def bulk_functions(self):
+        self.bulk_asn()
 
-	# elements analytics
+    def bulk_asn(self, items=1000):
+        debug_output("Running bulk ASN")
+        last_analysis = {'$or': [
+                                    {'next_analysis': {'$lt': datetime.datetime.utcnow()}},
+                                    {'last_analysis': None},
+                                ]
+                         }
 
-	def bulk_functions(self):
-		self.bulk_asn()
+        if self.setup['SKIP_TAGS']:
+            last_analysis['tags'] = {"$nin": self.setup['SKIP_TAGS']}
 
-	def bulk_asn(self, items=1000):
-		debug_output("Running bulk ASN")
-		last_analysis = {'$or': [
-									{ 'next_analysis' : {'$lt': datetime.datetime.utcnow()}},
-									{ 'last_analysis': None },
-								]
-						}
+        nobgp = {"$or": [{'bgp': None}, last_analysis]}
 
-		nobgp = {"$or": [{'bgp': None}, last_analysis ]}
+        total = self.data.elements.find({"$and": [{'type': 'ip'}, nobgp]}).count()
+        done = 0
+        results = [r for r in self.data.elements.find({"$and": [{'type': 'ip'}, nobgp]})[:items]]
 
-		total = self.data.elements.find({ "$and": [{'type': 'ip'}, nobgp]}).count()
-		done = 0
-		results = [r for r in self.data.elements.find({ "$and": [{'type': 'ip'}, nobgp]})[:items]]
+        while len(results) > 0 and self.run_analysis:
 
-		while len(results) > 0 and self.run_analysis:
+            ips = []
+            debug_output("(getting ASNs for %s IPs - %s/%s done)" % (len(results), done, total), type='analytics')
 
-			ips = []
-			debug_output("(getting ASNs for %s IPs - %s/%s done)" % (len(results), done, total), type='analytics')
+            for r in results:
+                ips.append(r)
 
-			for r in results:
-				ips.append(r)
+            as_info = {}
 
-			as_info = {}
+            try:
+                as_info = get_net_info_shadowserver(ips)
+            except Exception, e:
+                debug_output("Could not get AS for IPs: %s" % e)
 
-			try:
-				as_info = get_net_info_shadowserver(ips)
-			except Exception, e:
-				debug_output("Could not get AS for IPs: %s" % e)
+            if not as_info:
+                debug_output("as_info empty", 'error')
+                continue
 
-			if as_info == {} or as_info == None:
-				debug_output("as_info empty", 'error')
-				continue
+            for ip in as_info:
 
-			for ip in as_info:
+                _as = as_info[ip]
+                _ip = self.data.find_one({'value': ip})
 
-				_as = as_info[ip]
-				_ip = self.data.find_one({'value': ip})
+                if not _ip:
+                    continue
 
-				if not _ip:
-					continue
+                del _as['ip']
+                for key in _as:
+                    if key not in ['type', 'value', 'tags']:
+                        _ip[key] = _as[key]
+                del _as['bgp']
 
-				del _as['ip']
-				for key in _as:
-					if key not in ['type', 'value', 'tags']:
-						_ip[key] = _as[key]
-				del _as['bgp']
+                _as = As.from_dict(_as)
 
-				_as = As.from_dict(_as)
+                # commit any changes to DB
+                _as = self.save_element(_as)
+                _ip['last_analysis'] = datetime.datetime.utcnow()
+                _ip['next_analysis'] = _ip['last_analysis'] + datetime.timedelta(seconds=_ip['refresh_period'])
+                _ip = self.save_element(_ip)
 
-				# commit any changes to DB
-				_as = self.save_element(_as)
-				_ip['last_analysis'] = datetime.datetime.utcnow()
-				_ip['next_analysis'] = _ip['last_analysis'] + datetime.timedelta(seconds=_ip['refresh_period'])
-				_ip = self.save_element(_ip)
+                if _as and _ip:
+                    self.data.connect(_ip, _as, 'net_info')
 
-				if _as and _ip:
-					self.data.connect(_ip, _as, 'net_info')
+            done += len(results)
+            results = [r for r in self.data.elements.find({"$and": [{'type': 'ip'}, nobgp]})[:items]]
 
-			done += len(results)
-			results = [r for r in self.data.elements.find({ "$and": [{'type': 'ip'}, nobgp]})[:items]]
+    def notify_progress(self, msg):
+        if self.active:
+            msg = "Working - %s" % msg
+        else:
+            msg = "Inactive"
 
+        self.messenger.broadcast(msg, 'analytics', 'analyticsUpdate')
 
-	def notify_progress(self, msg):
-		if self.active:
-			msg = "Working - %s" % msg
-		else:
-			msg = "Inactive"
+    def run(self):
+        self.run_analysis = True
+        self.messenger = AnalyticsMessenger(self)
 
-		self.messenger.broadcast(msg, 'analytics', 'analyticsUpdate')
+        self.elements_queue = Queue.Queue()
+        self.queue_lock = Lock()
 
+        self.hostnames = Queue.Queue()
+        self.hostname_lock = Lock()
 
-	def run(self):
+        while self.run_analysis:
+            debug_output("Analytics hearbeat")
 
-		self.run_analysis = True
-		self.messenger = AnalyticsMessenger(self)
+            self.active_lock.acquire()
+            if self.run_analysis:
+                self.process(10000)
+            self.active_lock.release()
 
-		self.elements_queue = Queue.Queue()
-		self.queue_lock = Lock()
+            if self.once:
+                self.run_analysis = False
+                self.once = False
 
-		self.hostnames = Queue.Queue()
-		self.hostname_lock = Lock()
+            time.sleep(1)
 
-		while self.run_analysis:
-			debug_output("Analytics hearbeat")
+    def stop(self):
+        self.run_analysis = False
+        for w in self.workers:
+            try:
+                w.stop()
+            except Exception:
+                pass
 
-			self.active_lock.acquire()
-			if self.run_analysis:
-				self.process(10000)
-			self.active_lock.release()
+    def process_new(self, elt, new):
+        # self.process_lock.acquire()
+        last_connect = elt.get('date_updated', datetime.datetime.utcnow())
 
-			if self.once: self.run_analysis = False; self.once = False
+        for n in new:
+            if not n[1]:
+                continue
 
-			time.sleep(1)
+            saved = self.save_element(n[1])
 
-	def stop(self):
-		self.run_analysis = False
-		for w in self.workers:
-			try:
-				w.stop()
-			except Exception, e:
-				pass
+            # do the link
 
-	def process_new(self, elt, new):
-		# self.process_lock.acquire()
-		last_connect = elt.get('date_updated', datetime.datetime.utcnow())
-		new_elts = []
-		for n in new:
-			if not n[1]: continue
-			saved = self.save_element(n[1])
+            conn = self.data.connect(elt, saved, n[0])
 
-			# do the link
-			conn = self.data.connect(elt, saved, n[0])
-			if not conn: continue
-			first_seen = conn.get('first_seen', datetime.datetime.utcnow())
-			conn['first_seen'] = first_seen
-			last_seen = conn['last_seen']
+            if not conn:
+                continue
 
-			# update date updated if there's a new connection
-			if first_seen > last_connect:
-				last_connect = first_seen
+            first_seen = conn.get('first_seen', datetime.datetime.utcnow())
+            conn['first_seen'] = first_seen
 
-			# this will change updated time
-			elt['date_updated'] = last_connect
+            # update date updated if there's a new connection
+            if first_seen > last_connect:
+                last_connect = first_seen
 
-			new_elts.append(saved)
+            # this will change updated time
+            elt['date_updated'] = last_connect
 
-		# self.process_lock.release()
-		return new_elts
+        elt = self.data.save(elt)
 
+        return elt
 
-	def process(self, batch_size=2000):
-		if self.thread:
-			if self.thread.is_alive():
-				return
+    def process(self, batch_size=2000):
+        if self.thread:
+            if self.thread.is_alive():
+                return
 
-		then = datetime.datetime.utcnow()
+        then = datetime.datetime.utcnow()
 
-		self.workers = []
-		self.work_done = False
+        self.workers = []
+        self.work_done = False
 
-		query = {'next_analysis' : {'$lt': datetime.datetime.utcnow()}}
-		results = [r for r in self.data.elements.find(query)[:batch_size]]
-		total_elts = 0
+        query = {'next_analysis': {'$lt': datetime.datetime.utcnow()}}
+        if self.setup['SKIP_TAGS']:
+            query['tags'] = {"$nin": self.setup['SKIP_TAGS']}
 
-		if len(results) > 0:
+        results = [r for r in self.data.elements.find(query)[:batch_size]]
+        total_elts = 0
 
-			self.active = True
+        if len(results) > 0:
 
-			# start workers
-			self.queue_lock = Lock()
-			workers = []
-			for i in range(self.max_workers):
-				w = Worker(name="Worker %s" % i, queue_lock=self.queue_lock, hostname_lock=self.hostname_lock)
-				w.engine = self
-				w.start()
-				workers.append(w)
+            self.active = True
 
-			self.workers = workers
+            # start workers
+            self.queue_lock = Lock()
+            workers = []
+            for i in range(self.max_workers):
+                w = Worker(name="Worker %s" % i, queue_lock=self.queue_lock, hostname_lock=self.hostname_lock)
+                w.engine = self
+                w.start()
+                workers.append(w)
 
-			# add elements to Queue
-			for elt in results:
-				self.elements_queue.put(pickle.dumps(elt))
-				total_elts += 1
-				work_done = True
+            self.workers = workers
 
-			for i in range(self.max_workers):
-				self.elements_queue.put(pickle.dumps("BAIL"))
+            # add elements to Queue
+            for elt in results:
+                self.elements_queue.put(pickle.dumps(elt))
+                total_elts += 1
 
-			self.elements_queue.join()
+            for i in range(self.max_workers):
+                self.elements_queue.put(pickle.dumps("BAIL"))
 
-			debug_output("Workers have joined")
+            self.elements_queue.join()
 
-			# regroup ASN analytics and ADNS analytics
-			if self.run_analysis:
-				self.bulk_functions()
-				self.active = False
+            debug_output("Workers have joined")
 
-		now = datetime.datetime.utcnow()
+            # regroup ASN analytics and ADNS analytics
+            if self.run_analysis:
+                self.bulk_functions()
+                self.active = False
 
-		if total_elts > 0:
-			debug_output("Analyzed %s elements in %s" % (total_elts, str(now-then)) )
-		if self.run_analysis == True:
-			self.notify_progress("Inactive")
+        now = datetime.datetime.utcnow()
+
+        if total_elts > 0:
+            debug_output("Analyzed %s elements in {}".format(total_elts, str(now-then)))
+        if self.run_analysis:
+            self.notify_progress("Inactive")
