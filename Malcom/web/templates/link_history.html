@@ -10,7 +10,7 @@
 
 		<div id='historyTabsContent' class='tab-content'>
 			<div role="tabpanel" class='tab-pane active' id='table'>
-			{%if history|length > 1%}
+			{%if history|length > 0%}
 				<h4>{{src['value']}} → {{dst['value']}}</h4>
 				<table class='table table-condensed table-hover'>
 					<tr><th>Attribute</th><th>First seen</th><th>Last seen</th></tr>
@@ -19,7 +19,7 @@
 					{%endfor%}
 				</table>
 			{%endif%}
-			{%if rhistory|length > 1%}
+			{%if rhistory|length > 0%}
 				<h4>{{dst['value']}} → {{src['value']}}</h4>
 				<table class='table table-condensed table-hover'>
 					<tr><th>Attribute</th><th>First seen</th><th>Last seen</th></tr>
