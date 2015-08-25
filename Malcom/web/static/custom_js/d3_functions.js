@@ -369,18 +369,18 @@ function start() {
     .attr("id", function(d) {return d._id.$oid })
     .attr("class", function (d) { //asdasd
       c = 'link ';
-      c += d.attribs + " ";
+      c += d.short_desc + " ";
       return c
     })
     // .style("stroke", function(d) {
-    //   if (d.attribs == '') { return "#AAA" } else {return color(d.attribs);}
+    //   if (d.short_desc == '') { return "#AAA" } else {return color(d.short_desc);}
     // })
 
     // text on links
 
    path_text = svg.selectAll(".path-text").data(force.links(), function (d) { return d._id.$oid });
    if (link_labels) {
-    path_text.enter().append('svg:text').attr('class','path-text').text(function (d) {return d.attribs})
+    path_text.enter().append('svg:text').attr('class','path-text').text(function (d) {return d.short_desc})
    }
    else {
     path_text.remove()
@@ -390,9 +390,9 @@ function start() {
   // lines = l.append('line', '.node') .attr("class", "link")
   //   .attr("marker-end", function(d) { return "url(#arrow)"; })
   //   .attr("id", function(d) {return d._id.$oid })
-  //   .style("stroke", function(d) { return color(d.attribs); })
+  //   .style("stroke", function(d) { return color(d.short_desc); })
 
-  //path_text = l.append("text").attr('class', 'path-text').text(function(d) { return d.attribs })
+  //path_text = l.append("text").attr('class', 'path-text').text(function(d) { return d.short_desc })
 
   // remove old links
   link.exit().remove();
