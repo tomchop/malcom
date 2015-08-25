@@ -131,7 +131,7 @@
 					<td><a class='glyphicon glyphicon-time' href="{{ url_for('link_history', src=link['dst']['_id'], dst=link['src']['_id']) }}">
 					<td>{{ display_malcom('value', link['dst']['value']) }}</td>
 					<td>{{ display_malcom('tags', link['dst']['tags']) }}</td>
-					<td>{{ display_malcom('short_desc', link['short_desc']) }}</td>
+					<td>{{ display_malcom('attribs', link['attribs']) }}</td>
 					<td>{{ display_malcom('first_seen', link['first_seen']) }}</td>
 					<td>{{ display_malcom('last_seen', link['last_seen']) }}</td>
 				</tr>
@@ -159,7 +159,7 @@
 					<td><a class='glyphicon glyphicon-time' href="{{ url_for('link_history', src=link['src']['_id'], dst=link['dst']['_id']) }}"></a></td>
 					<td>{{ display_malcom('value', link['src']['value']) }}</td>
 					<td>{{ display_malcom('tags', link['src']['tags']) }}</td>
-					<td>{{ display_malcom('short_desc', link['short_desc']) }}</td>
+					<td>{{ display_malcom('attribs', link['attribs']) }}</td>
 					<td>{{ display_malcom('first_seen', link['first_seen']) }}</td>
 					<td>{{ display_malcom('last_seen', link['last_seen']) }}</td>
 				</tr>

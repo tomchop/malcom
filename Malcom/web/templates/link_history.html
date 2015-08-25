@@ -15,7 +15,7 @@
 				<table class='table table-condensed table-hover'>
 					<tr><th>Attribute</th><th>First seen</th><th>Last seen</th></tr>
 					{% for h in history%}
-					<tr {% if loop.index0 == 0%} class='active' {%endif%}><td>{{h['short_desc']}}</td><td>{{h['first_seen']}}</td><td>{{h['last_seen']}}</td></tr>
+					<tr {% if loop.index0 == 0%} class='active' {%endif%}><td>{{h['attribs']}}</td><td>{{h['first_seen']}}</td><td>{{h['last_seen']}}</td></tr>
 					{%endfor%}
 				</table>
 			{%endif%}
@@ -24,7 +24,7 @@
 				<table class='table table-condensed table-hover'>
 					<tr><th>Attribute</th><th>First seen</th><th>Last seen</th></tr>
 					{% for h in rhistory%}
-					<tr {% if loop.index0 == 0%} class='active' {%endif%}><td>{{h['short_desc']}}</td><td>{{h['first_seen']}}</td><td>{{h['last_seen']}}</td></tr>
+					<tr {% if loop.index0 == 0%} class='active' {%endif%}><td>{{h['attribs']}}</td><td>{{h['first_seen']}}</td><td>{{h['last_seen']}}</td></tr>
 					{%endfor%}
 				</table>
 			{%endif%}
