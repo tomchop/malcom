@@ -112,7 +112,7 @@ class Model:
 
 
 
-    def connect(self, src, dst, short_desc="", commit=True):
+    def connect(self, src, dst, attribs="", commit=True):
         if not src or not dst:
             return None
 
@@ -129,16 +129,16 @@ class Model:
             oldconn = None
 
             if conn:
-                if conn['short_desc'] != short_desc:  # Attributes have changed. New, updated link is created
+                if conn['attribs'] != attribs:  # Attributes have changed. New, updated link is created
                     oldconn = conn
                     conn = {}
                     conn['src'] = src._id
                     conn['dst'] = dst._id
-                    conn['short_desc'] = short_desc
+                    conn['attribs'] = attribs
                     conn['first_seen'] = datetime.datetime.utcnow()
                     conn['latest'] = True
                     oldconn['latest'] = False
-                    debug_output("(updated link from %s to %s [%s])" % (str(src._id), str(dst._id), short_desc), type='model')
+                    debug_output("(updated link from %s to %s [%s])" % (str(src._id), str(dst._id), attribs), type='model')
 
 
                 conn['last_seen'] = datetime.datetime.utcnow()
@@ -148,11 +148,11 @@ class Model:
                 conn = {}
                 conn['src'] = src._id
                 conn['dst'] = dst._id
-                conn['short_desc'] = short_desc
+                conn['attribs'] = attribs
                 conn['first_seen'] = datetime.datetime.utcnow()
                 conn['last_seen'] = datetime.datetime.utcnow()
                 conn['latest'] = True
-                debug_output("(linked %s to %s [%s])" % (str(src._id), str(dst._id), short_desc), type='model')
+                debug_output("(linked %s to %s [%s])" % (str(src._id), str(dst._id), attribs), type='model')
 
             if commit:
                 while True:
