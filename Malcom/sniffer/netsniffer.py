@@ -324,16 +324,16 @@ class SnifferSession():
 
         if TCP in pkt:
             ports = known_tcp_ports
-            attribs = "TCP"
+            tag = "TCP"
         elif UDP in pkt:
             ports = known_udp_ports
-            attribs = "UDP"
+            tag = "UDP"
 
-        attribs = ports.get(str(dest['port']), attribs)
-        if attribs in ["TCP", "UDP"]:
-            attribs = ports.get(str(source['port']), attribs)
+        tag = ports.get(str(dest['port']), tag)
+        if tag in ["TCP", "UDP"]:
+            tag = ports.get(str(source['port']), tag)
 
-        conn = {'attribs': attribs, 'src': ids[0], 'dst': ids[1], '_id': {oid: str(ids[0])[12:]+str(ids[1])[12:]}}
+        conn = {'tag': tag, 'src': ids[0], 'dst': ids[1], '_id': {oid: str(ids[0])[12:]+str(ids[1])[12:]}}
 
         self.edges[str(conn['_id'])] = conn
 
@@ -426,7 +426,7 @@ class SnifferSession():
                         new_elts.append(_rdata)
 
                     # we can use a real connection here
-                    # conn = {'attribs': 'A', 'src': _rrname['_id'], 'dst': _rdata['_id'], '_id': { '$oid': str(_rrname['_id'])+str(_rdata['_id'])}}
+                    # conn = {'tag': 'A', 'src': _rrname['_id'], 'dst': _rdata['_id'], '_id': { '$oid': str(_rrname['_id'])+str(_rdata['_id'])}}
 
                     # if two elements are found, link them
                     if _rrname != [] and _rdata != []:
@@ -462,14 +462,14 @@ class SnifferSession():
                     new_elts.append(host)
 
             # in this case, we can save the connection to the DB since it is not temporary
-            # conn = {'attribs': http_elts['method'], 'src': host['_id'], 'dst': url['_id'], '_id': { '$oid': str(host['_id'])+str(url['_id'])}}
+            # conn = {'tag': http_elts['method'], 'src': host['_id'], 'dst': url['_id'], '_id': { '$oid': str(host['_id'])+str(url['_id'])}}
             if url and host:
                 conn = self.model.connect(host, url, "host")
                 self.edges[str(conn['_id'])] = conn
                 new_edges.append(conn)
 
                 src_addr = self.model.get(value=flow.src_addr)
-                conn_http = {'attribs': http_elts['method'], 'src': src_addr['_id'], 'dst': host['_id'], '_id': {'$oid': str(src_addr['_id'])[12:]+str(host['_id'])[12:]}}
+                conn_http = {'tag': http_elts['method'], 'src': src_addr['_id'], 'dst': host['_id'], '_id': {'$oid': str(src_addr['_id'])[12:]+str(host['_id'])[12:]}}
                 self.edges[str(conn_http['_id'])] = conn_http
                 new_edges.append(conn_http)
 

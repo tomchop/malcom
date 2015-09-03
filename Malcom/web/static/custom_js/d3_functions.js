@@ -369,18 +369,18 @@ function start() {
     .attr("id", function(d) {return d._id.$oid })
     .attr("class", function (d) { //asdasd
       c = 'link ';
-      c += d.attribs + " ";
+      c += d.tag + " ";
       return c
     })
     // .style("stroke", function(d) {
-    //   if (d.attribs == '') { return "#AAA" } else {return color(d.attribs);}
+    //   if (d.tag == '') { return "#AAA" } else {return color(d.tag);}
     // })
 
     // text on links
 
    path_text = svg.selectAll(".path-text").data(force.links(), function (d) { return d._id.$oid });
    if (link_labels) {
-    path_text.enter().append('svg:text').attr('class','path-text').text(function (d) {return d.attribs})
+    path_text.enter().append('svg:text').attr('class','path-text').text(function (d) {return d.tag})
    }
    else {
     path_text.remove()
@@ -390,9 +390,9 @@ function start() {
   // lines = l.append('line', '.node') .attr("class", "link")
   //   .attr("marker-end", function(d) { return "url(#arrow)"; })
   //   .attr("id", function(d) {return d._id.$oid })
-  //   .style("stroke", function(d) { return color(d.attribs); })
+  //   .style("stroke", function(d) { return color(d.tag); })
 
-  //path_text = l.append("text").attr('class', 'path-text').text(function(d) { return d.attribs })
+  //path_text = l.append("text").attr('class', 'path-text').text(function(d) { return d.tag })
 
   // remove old links
   link.exit().remove();
@@ -481,6 +481,8 @@ function tick(e) {
           var dx = (d.target.x - d.source.x),
           dy = (d.target.y - d.source.y);
           var dr = Math.sqrt(dx * dx + dy * dy);
+          if (dx == 0 || dy == 0) { return "" }
+
           var sinus = dy/dr;
           var cosinus = dx/dr;
           var l = dr-50

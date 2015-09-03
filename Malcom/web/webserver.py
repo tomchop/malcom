@@ -418,7 +418,7 @@ def find_related(field, query, base_elts, base_ids, evil_elts):
 
         d[e['_id']] = {'src': src,
                        'dst': dst,
-                       'attribs': e['attribs'],
+                       'tag': e['tag'],
                        'last_seen': e['last_seen'],
                        'first_seen': e['first_seen'],
                        }

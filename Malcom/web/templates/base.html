@@ -7,9 +7,11 @@
       <span class="label label-default">N/A</span>
     {%else%}
       {% for tag in value %}
-        <span class="label label-tag-{{tag}}">{{tag}}</span>
+        <span class="label label-primary label-tag-{{tag}}">{{tag}}</span>
       {%endfor%}
     {%endif%}
+  {% elif key == 'tag' %}
+    <span class="label label-primary">{{value}}</span>
   {% else %}
     {{ value | display_other }}
   {% endif %}
