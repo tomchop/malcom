@@ -180,7 +180,7 @@ class Analytics(Process):
 
             if not as_info:
                 debug_output("as_info empty", 'error')
-                continue
+                break
 
             for ip in as_info:
 
