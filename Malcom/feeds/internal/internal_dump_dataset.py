@@ -19,7 +19,7 @@ class ExportAll(Feed):
 
         self.output_json = codecs.open('{}/export_all.json'.format(self.engine.configuration['EXPORTS_DIR']), 'w', "utf-8")
         self.output_json.write(u'[')
-        for elt in self.model.elements.find():
+        for elt in self.model.elements.find({ "tags": {"$nin": ["whitelist"]}}):
             csv = elt.to_csv()
             self.output_csv.write(u"{}\n".format(csv))
             self.output_json.write(u"{}, ".format(elt.to_json()))
