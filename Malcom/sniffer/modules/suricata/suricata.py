@@ -37,15 +37,13 @@ class Suricata(Module):
         interface, mode, conf_suricata, socket_unix = self.setup()
         self.result = super(Suricata, self).load_entry()
         self.reload = False
-
-        if self.result is None:
+        self.actions = Actions(interface=interface, conf_sniffer=conf_suricata, mode=mode, socket_unix=socket_unix)
+        if not self.result: #or self.result['timeout'] < datetime.datetime.utcnow():
             self.reload = True
-
         if self.reload:
-            self.actions = Actions(interface=interface, conf_sniffer=conf_suricata, mode=mode, socket_unix=socket_unix)
-            debug_output('Suricata Start')
-            self.actions.start()
-            sleep(3)
+                debug_output('Suricata Start')
+                self.actions.start()
+                sleep(10)
 
     def setup(self):
         interface = ''
@@ -147,7 +145,7 @@ class Suricata(Module):
                 if self.reload:
                     result_to_save['datas'].append(entry)
         if self.reload:
-            self.save_entry(result_to_save)
+            self.save_result(result_to_save)
         content += "</table>"
 
         return content
@@ -184,13 +182,13 @@ class Actions(object):
 
     def run(self):
         cmd = []
-
         if self.mode == "--unix-socket":
             cmd = [self.sniffer, '-c', self.conf_sniffer, '--unix-socket']
         if self.mode == 'online':
             cmd = [self.sniffer, '-c', self.conf_sniffer, '-i', self.interface, '-D']
         try:
-            result = subprocess.Popen(cmd, stdout=PIPE)
+            result = subprocess.Popen(cmd,
+                                      stdout=PIPE)
             for ligne in result.stdout.read():
                 # debug_output('toto'+ligne+'\r\n')
                 pass

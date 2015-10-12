@@ -27,7 +27,7 @@ pyasn1==0.1.7
 pyasn1-modules==0.0.5
 pycparser==2.10
 pycrypto==2.6.1
-pymongo==2.8
+pymongo==3.0
 python-dateutil==2.4.0
 redis==2.10.3
 requests==2.5.1
