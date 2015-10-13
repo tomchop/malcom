@@ -377,6 +377,9 @@ class Model:
                     break
                 except pymongo.errors.DuplicateKeyError as e:
                     break
+                except pymongo.errors.WriteError as e:
+                    debug_output("Could not save %s: %s (%s)" % (element, e, type(e)), 'error')
+                    break
                 except Exception as e:
                     debug_output("Could not save %s: %s (%s)" % (element, e, type(e)), 'error')
 
