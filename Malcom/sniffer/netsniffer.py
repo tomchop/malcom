@@ -473,6 +473,18 @@ class SnifferSession():
                 self.edges[str(conn_http['_id'])] = conn_http
                 new_edges.append(conn_http)
 
+            referer = self.model.add_text([http_elts['referer']])
+
+            if referer:
+                if referer['value'] not in self.nodes:
+                    self.nodes[referer['value']] = referer
+                    new_elts.append(referer)
+
+            if url and referer:
+                referer_link = {'attribs': 'referer', 'src': referer['_id'], 'dst': url['_id'], '_id': {'$oid': str(referer['_id'])[12:]+str(url['_id'])[12:]}}
+                self.edges[str(referer_link['_id'])] = referer_link
+                new_edges.append(referer_link)
+
         return new_elts, new_edges
 
     def handlePacket(self, pkt):

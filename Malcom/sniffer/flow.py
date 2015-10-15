@@ -103,6 +103,10 @@ class Decoder(object):
 				data['host'] = None
 				data['port'] = None
 
+			referer = re.search(r'Referer: (?P<referer>[\S]+)', payload)
+			if referer:
+				data['referer'] = referer.group('referer')
+
 			data['flow_type'] = "http_request"
 
 			if secure:
@@ -222,13 +226,9 @@ class Flow(object):
 			self.add_pkt(pkt)
 
 
-
-
-
-
 	def extract_elements(self):
 		if self.decoded_flow and self.decoded_flow['flow_type'] == 'http_request':
-			return {'url': self.decoded_flow['url'], 'host': self.decoded_flow['host'], 'method': self.decoded_flow['method']}
+			return {'url': self.decoded_flow['url'], 'host': self.decoded_flow['host'], 'method': self.decoded_flow['method'], 'referer': self.decoded_flow.get('referer', None)}
 		else:
 			return None
 
@@ -369,7 +369,3 @@ if __name__ == '__main__':
 
 	for fid in flows:
 		flows[fid].print_statistics()
-
-
-
-
