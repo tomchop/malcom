@@ -202,6 +202,7 @@ class Flow(object):
 		self.decoded_flow = None
 		self.data_transferred = 0
 		self.packet_count = 0
+		self.buffer = [] # buffer for out-of-order packets
 
 		if pkt:
 			# set initial timestamp
@@ -216,7 +217,6 @@ class Flow(object):
 
 			if pkt.getlayer(IP).proto == 6:
 				self.protocol = 'TCP'
-				self.buffer = [] # buffer for out-of-order packets
 			elif pkt.getlayer(IP).proto == 17:
 				self.protocol = 'UDP'
 			else:
