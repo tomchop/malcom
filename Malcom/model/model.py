@@ -310,6 +310,8 @@ class Model:
         if None in [element['value'], element['type']]:
             raise ValueError("Invalid value for element: %s" % element)
 
+        element['value'] = element['value'][:1023]  # avoid inserting unindexable values
+
         with self.db_lock:
 
             # critical section starts here
