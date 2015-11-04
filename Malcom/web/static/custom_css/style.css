@@ -112,7 +112,7 @@ img.ssl-smiley {
 
 #dataset .value {
 	max-width: 400px;
-	overflow: scroll;
+	overflow: hidden;
 }
 
 a.graphicon {
@@ -280,5 +280,3 @@ html {
 	margin: 7px 0;
 	font-size: small;
 }
-
-
