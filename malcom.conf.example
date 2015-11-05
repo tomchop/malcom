@@ -48,7 +48,7 @@ name = malcom
 # example: my_server1,my_server2:27018,182.168.0.10[,...]
 # If you have any IPv6 addresses, they have to enclosed in '[' and ']' characters (ex: [::1])
 # default: localhost
-host = localhost
+hosts = localhost
 
 # ReplicaSet name (optionnal)
 # If set, the pymongo driver will check if the hosts above are really part of the named replicaSet when connecting to them
