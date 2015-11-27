@@ -434,7 +434,7 @@ class Export(Resource):
     """Obtain a pre-generated full database export"""
     decorators=[login_required]
     parser = reqparse.RequestParser()
-    parser.add_argument('output', type=str, default='json', choices=['csv', 'json'])
+    parser.add_argument('output', type=str, default='json', choices=['csv', 'json', 'bluecoat'])
     parser.add_argument('name', required=True, type=str)
 
     @swagger.operation(
@@ -447,7 +447,7 @@ class Export(Resource):
                 'required': False,
                 "allowMultiple": False,
                 'paramType': 'query',
-                "allowableValues": {"values": ["json", "csv"], "valueType": "LIST" },
+                "allowableValues": {"values": ["json", "csv", "bluecoat"], "valueType": "LIST" },
                 "defaultValue": 'json',
                 "dataType": 'str',
             },
