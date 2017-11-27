@@ -31,10 +31,10 @@ Check the [wiki](https://github.com/tomchop/malcom/wiki) for a Quickstart with s
 If you need some help, or want to contribute, feel free to join the [mailing list](https://groups.google.com/forum/#!forum/malcom-users) or try to grab someone on IRC (#malcom on freenode.net, it's pretty quiet but there's always someone around). You can also hit me up on twitter [@tomchop_](https://twitter.com/tomchop_)
 
 Here's an example graph for host tomchop.me
-![nodes-tomchop.png](http://direct.tomchop.me/malcom/nodes-tomchop.png)
+![nodes-tomchop.png](screenshots/nodes-tomchop.png?raw=true)
 
 Dataset view (filtered to only show IPs)
-![nodes-tomchop.png](http://direct.tomchop.me/malcom/dataset-view.png)
+![dataset-view.png](screenshots/dataset-view.png?raw=true)
 
 
 ## Quick how-to
